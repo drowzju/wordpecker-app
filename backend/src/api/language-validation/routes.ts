@@ -1,6 +1,5 @@
 import { Router } from 'express';
-import { run } from '@openai/agents';
-import { languageValidationAgent } from '../../agents';
+import { getLanguageValidation } from '../../agents';
 import { LanguageValidationResultType } from '../../agents/language-validation-agent/schemas';
 
 const router = Router();
@@ -15,8 +14,7 @@ router.post('/validate', async (req, res) => {
       });
     }
 
-    const result = await run(languageValidationAgent, language.trim());
-    const validationResult = result.finalOutput as LanguageValidationResultType;
+    const validationResult = await getLanguageValidation(language.trim());
 
     res.json(validationResult);
   } catch (error) {

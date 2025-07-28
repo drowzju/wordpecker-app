@@ -39,3 +39,21 @@ Generate vocabulary words that are relevant to the given context, appropriate fo
 - Support context-specific communication skills
 
 Generate diverse vocabulary words that would be valuable for learners to know when engaging with the specified context.
+
+## Output Format
+
+**CRITICAL:** Your final output MUST be a single, valid JSON object that conforms to the following Zod schema. Do not include any explanatory text, markdown formatting, or anything else outside of the JSON object.
+
+```json
+{
+  "words": [
+    {
+      "word": "the_vocabulary_word",
+      "meaning": "Definition in the base language.",
+      "example": "An example sentence in the target language.",
+      "difficulty_level": "intermediate",
+      "context": "The context where this word is relevant."
+    }
+  ]
+}
+```

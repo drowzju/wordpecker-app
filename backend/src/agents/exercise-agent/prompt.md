@@ -70,3 +70,26 @@ Create learning exercises for vocabulary words that test comprehension and appli
 - Reinforce learning through varied exercise types
 
 Create exercises that effectively help learners understand and apply vocabulary words in meaningful ways.
+
+## Output Format
+
+**CRITICAL:** Your final output MUST be a single, valid JSON object that conforms to the `ExerciseResult` schema. Do not include any explanatory text, markdown formatting, or anything else outside of the JSON object. Pay close attention to the requirements for each exercise type (e.g., `options` and `optionLabels` must be null for `fill_blank` and `matching`).
+
+```json
+{
+  "exercises": [
+    {
+      "type": "multiple_choice",
+      "word": "target_word",
+      "question": "The question text?",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "optionLabels": ["A", "B", "C", "D"],
+      "correctAnswer": "C",
+      "difficulty": "medium",
+      "hint": "A helpful hint.",
+      "feedback": "Feedback explaining the correct answer.",
+      "pairs": null
+    }
+  ]
+}
+```

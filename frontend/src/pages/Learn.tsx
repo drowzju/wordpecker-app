@@ -49,7 +49,7 @@ export const Learn = () => {
   const hasInitializedRef = useRef(false);
   const isMountedRef = useRef(false);
   
-  const [list] = useState<WordList | null>(state?.list || null);
+  const [list, setList] = useState<WordList | null>(state?.list || null);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [currentExercise, setCurrentExercise] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState('');
@@ -66,7 +66,31 @@ export const Learn = () => {
     isMountedRef.current = true;
 
     const initLearn = async () => {
-      if (!id || !list || hasInitializedRef.current) return;
+      if (!id) {
+        navigate('/lists'); // Redirect if no list ID
+        return;
+      }
+
+      let currentList = list;
+      if (!currentList) {
+        try {
+          currentList = await apiService.getList(id);
+          setList(currentList);
+        } catch (error: any) {
+          console.error('Error fetching list:', error);
+          toast({
+            title: 'Error',
+            description: error.response?.data?.message || 'Failed to load list',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
+          navigate('/lists');
+          return;
+        }
+      }
+
+      if (hasInitializedRef.current) return;
       
       try {
         setIsLoading(true);

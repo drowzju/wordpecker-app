@@ -163,6 +163,7 @@ router.post('/word/:wordId/sentences', validate(wordContextSchema), async (req, 
 
     res.json({ examples: sentences });
   } catch (error) {
+    console.error(error); 
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -192,6 +193,7 @@ router.post('/word/:wordId/similar', openaiRateLimiter, validate(wordContextSche
       similar_words: similarWords
     });
   } catch (error) {
+    console.error(error); 
     res.status(500).json({ message: 'Internal server error' });
   }
 });

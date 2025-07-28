@@ -40,3 +40,19 @@ Generate diverse, practical sentence examples that show learners how to use voca
 - Provide models for learners' own sentence creation
 
 Create sentence examples that serve as effective learning tools and practical usage guides.
+
+## Output Format
+
+**CRITICAL:** Your final output MUST be a single, valid JSON object that conforms to the following Zod schema. Do not include any explanatory text, markdown formatting, or anything else outside of the JSON object.
+
+```json
+{
+  "examples": [
+    {
+      "sentence": "The example sentence in the target language.",
+      "translation": "The translation of the sentence in the base language.",
+      "context_note": "An explanation of how the word is used in this specific context."
+    }
+  ]
+}
+```

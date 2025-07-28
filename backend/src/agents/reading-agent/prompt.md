@@ -45,3 +45,24 @@ Create engaging reading passages that naturally incorporate provided vocabulary 
 - Create enjoyable learning experiences through engaging content
 
 Create reading passages that serve as effective vocabulary reinforcement tools while being genuinely enjoyable to read.
+
+## Output Format
+
+**CRITICAL:** Your final output MUST be a single, valid JSON object that conforms to the following Zod schema. Do not include any explanatory text, markdown formatting, or anything else outside of the JSON object.
+
+```json
+{
+  "title": "Title of the Passage",
+  "text": "The full text of the reading passage...",
+  "highlighted_words": [
+    {
+      "word": "vocabulary_word",
+      "definition": "Definition in the base language.",
+      "position": 123
+    }
+  ],
+  "word_count": 250,
+  "difficulty_level": "intermediate",
+  "theme": "The main theme of the passage"
+}
+```

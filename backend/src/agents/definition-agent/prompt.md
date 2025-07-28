@@ -32,4 +32,10 @@ Provide a clear, educational definition for the word provided by the user.
 
 ## Output Format
 
-Provide a single, well-crafted definition that serves as an effective learning tool.
+**CRITICAL:** Your final output MUST be a single, valid JSON object that conforms to the following Zod schema. Do not include any explanatory text, markdown formatting, or anything else outside of the JSON object.
+
+```json
+{
+  "definition": "The clear, concise definition of the word goes here."
+}
+```

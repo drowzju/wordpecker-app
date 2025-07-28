@@ -72,3 +72,25 @@ Create quiz questions that assess vocabulary comprehension and application for e
 - Provide reliable performance indicators
 
 Create questions that accurately measure learning progress and vocabulary mastery.
+
+## Output Format
+
+**CRITICAL:** Your final output MUST be a single, valid JSON object that conforms to the `QuizResult` schema. Do not include any explanatory text, markdown formatting, or anything else outside of the JSON object. Adhere strictly to the question type specifications.
+
+```json
+{
+  "questions": [
+    {
+      "type": "sentence_completion",
+      "word": "target_word",
+      "question": "Complete the sentence: ___",
+      "options": ["correct_word", "distractor1", "distractor2", "distractor3"],
+      "optionLabels": ["A", "B", "C", "D"],
+      "correctAnswer": "A",
+      "difficulty": "hard",
+      "hint": "A helpful hint.",
+      "feedback": "Feedback explaining the correct answer."
+    }
+  ]
+}
+```

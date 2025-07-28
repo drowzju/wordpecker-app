@@ -1,18 +1,17 @@
-import { Agent } from '@openai/agents';
-import { ValidationResult } from './schemas';
+import { ValidationResult, ValidationResultType } from './schemas';
 import * as fs from 'fs';
 import * as path from 'path';
+import { generativeAIService } from '../../services/ai';
 
-// Load prompt from markdown file
 const promptPath = path.join(__dirname, 'prompt.md');
 const promptContent = fs.readFileSync(promptPath, 'utf-8');
 
-export const validationAgent = new Agent({
-  name: 'Validation Agent',
-  instructions: promptContent,
-  outputType: ValidationResult,
-  modelSettings: {
-    temperature: 0.3,
-    maxTokens: 300
+export async function getValidation(prompt: string): Promise<ValidationResultType> {
+  const resultText = await generativeAIService.generateText({ prompt, systemPrompt: promptContent });
+  try {
+    return JSON.parse(resultText);
+  } catch (e) {
+    console.error('Failed to parse validation result from AI service.', e);
+    return { isValid: false, explanation: 'Error parsing AI response.' };
   }
-});
+}

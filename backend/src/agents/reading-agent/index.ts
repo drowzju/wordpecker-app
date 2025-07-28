@@ -1,18 +1,17 @@
-import { Agent } from '@openai/agents';
-import { ReadingResult } from './schemas';
+import { ReadingResult, ReadingResultType } from './schemas';
 import * as fs from 'fs';
 import * as path from 'path';
+import { generativeAIService } from '../../services/ai';
 
-// Load prompt from markdown file
 const promptPath = path.join(__dirname, 'prompt.md');
 const promptContent = fs.readFileSync(promptPath, 'utf-8');
 
-export const readingAgent = new Agent({
-  name: 'Reading Agent',
-  instructions: promptContent,
-  outputType: ReadingResult,
-  modelSettings: {
-    temperature: 0.8,
-    maxTokens: 1500
+export async function getReading(prompt: string): Promise<ReadingResultType> {
+  const resultText = await generativeAIService.generateText({ prompt, systemPrompt: promptContent });
+  try {
+    return JSON.parse(resultText);
+  } catch (e) {
+    console.error('Failed to parse reading result from AI service.', e);
+    return { title: 'Error', text: 'Failed to generate reading passage.', highlighted_words: [], word_count: 0, difficulty_level: 'unknown', theme: 'error' };
   }
-});
+}

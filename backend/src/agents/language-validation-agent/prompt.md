@@ -90,3 +90,23 @@ This system supports **ALL world languages** including but not limited to:
 - "Programming" → Not a human language
 
 Always prioritize helping users find the correct language they're looking for while maintaining accuracy and supporting the full diversity of human languages.
+
+## Output Format
+
+**CRITICAL:** Your final output MUST be a single, valid JSON object that conforms to the following Zod schema. Do not include any explanatory text, markdown formatting, or anything else outside of the JSON object.
+
+```json
+{
+  "isValid": true,
+  "languageCode": "en",
+  "standardizedName": "English",
+  "parameters": [
+    {
+      "type": "region",
+      "value": "america",
+      "description": "American English variant"
+    }
+  ],
+  "explanation": "The input 'American English' is a valid language."
+}
+```

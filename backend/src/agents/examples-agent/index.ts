@@ -1,18 +1,17 @@
-import { Agent } from '@openai/agents';
-import { ExamplesResult } from './schemas';
+import { ExamplesResult, ExamplesResultType } from './schemas';
 import * as fs from 'fs';
 import * as path from 'path';
+import { generativeAIService } from '../../services/ai';
 
-// Load prompt from markdown file
 const promptPath = path.join(__dirname, 'prompt.md');
 const promptContent = fs.readFileSync(promptPath, 'utf-8');
 
-export const examplesAgent = new Agent({
-  name: 'Examples Agent',
-  instructions: promptContent,
-  outputType: ExamplesResult,
-  modelSettings: {
-    temperature: 0.7,
-    maxTokens: 800
+export async function getExamples(prompt: string): Promise<ExamplesResultType> {
+  const resultText = await generativeAIService.generateText({ prompt, systemPrompt: promptContent });
+  try {
+    return JSON.parse(resultText);
+  } catch (e) {
+    console.error('Failed to parse examples result from AI service.', e);
+    return { examples: [] };
   }
-});
+}

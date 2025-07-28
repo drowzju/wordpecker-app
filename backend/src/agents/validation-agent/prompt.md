@@ -41,3 +41,14 @@ Evaluate whether a student's answer is semantically correct and provide construc
 - Support learner growth with constructive validation
 
 Evaluate answers with the understanding that language learning involves approximation and gradual improvement toward accuracy.
+
+## Output Format
+
+**CRITICAL:** Your final output MUST be a single, valid JSON object that conforms to the following Zod schema. Do not include any explanatory text, markdown formatting, or anything else outside of the JSON object.
+
+```json
+{
+  "isValid": true,
+  "explanation": "The user's answer is correct because..."
+}
+```

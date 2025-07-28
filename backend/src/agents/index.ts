@@ -1,17 +1,17 @@
-export { configureOpenAIAgents } from './config';
+
 
 // Core vocabulary learning agents
-export { definitionAgent } from './definition-agent';
-export { vocabularyAgent } from './vocabulary-agent';
-export { exerciseAgent } from './exercise-agent';
-export { quizAgent } from './quiz-agent';
-export { validationAgent } from './validation-agent';
-export { examplesAgent } from './examples-agent';
-export { similarWordsAgent } from './similar-words-agent';
-export { readingAgent } from './reading-agent';
-export { languageValidationAgent } from './language-validation-agent';
+export { getDefinition } from './definition-agent';
+export { getVocabulary } from './vocabulary-agent';
+export { getExercises } from './exercise-agent';
+export { getQuiz } from './quiz-agent';
+export { getValidation } from './validation-agent';
+export { getExamples } from './examples-agent';
+export { getSimilarWords } from './similar-words-agent';
+export { getReading } from './reading-agent';
+export { getLanguageValidation } from './language-validation-agent';
 
 // Image-related agents
-export { imageAnalysisAgent } from './image-analysis-agent';
-export { imageGenerationAgent } from './image-generation-agent';
-export { contextualImageAgent } from './contextual-image-agent';
+export { getImageAnalysis } from './image-analysis-agent';
+export { getImageGeneration } from './image-generation-agent';
+export { getContextualImage } from './contextual-image-agent';

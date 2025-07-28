@@ -40,3 +40,21 @@ Find similar words, synonyms, and related vocabulary that helps learners underst
 - Support vocabulary development through meaningful connections
 
 Find words that genuinely enhance learners' ability to express themselves effectively in the target language.
+
+## Output Format
+
+**CRITICAL:** Your final output MUST be a single, valid JSON object that conforms to the following Zod schema. Do not include any explanatory text, markdown formatting, or anything else outside of the JSON object.
+
+```json
+{
+  "synonyms": [
+    {
+      "word": "similar_word",
+      "definition": "Definition in the base language.",
+      "example": "Example sentence in the target language.",
+      "usage_note": "When to use this word versus the original word."
+    }
+  ],
+  "interchangeable_words": []
+}
+```

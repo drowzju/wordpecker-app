@@ -40,3 +40,14 @@ Generate optimized search parameters and enhanced context descriptions that help
 - Support diverse vocabulary learning activities and exercises
 
 Generate search parameters and context descriptions that maximize vocabulary learning opportunities through visual content.
+
+## Output Format
+
+**CRITICAL:** Your final output MUST be a single, valid JSON object that conforms to the following Zod schema. Do not include any explanatory text, markdown formatting, or anything else outside of the JSON object.
+
+```json
+{
+  "searchQuery": "A concise search query (2-4 words)",
+  "enhancedContext": "An enhanced, detailed context description for vocabulary learning."
+}
+```

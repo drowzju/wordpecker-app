@@ -1,6 +1,11 @@
-import { run } from '@openai/agents';
-import { exerciseAgent } from '../../agents';
+import { getExercises } from '../../agents';
 import { ExerciseResultType, ExerciseType } from '../../agents/exercise-agent/schemas';
+import { generativeAIService } from '../../services/ai';
+import * as fs from 'fs';
+import * as path from 'path';
+
+const exercisePromptPath = path.join(__dirname, '..', '..', 'agents', 'exercise-agent', 'prompt.md');
+const exerciseSystemPrompt = fs.readFileSync(exercisePromptPath, 'utf-8');
 
 export class LearnAgentService {
   async generateExercises(
@@ -20,8 +25,16 @@ Learning Context: "${context}"
 Use these exercise types: ${exerciseTypes.join(', ')}
 Create exactly ${words.length} exercises (one per word).`;
     
-    const response = await run(exerciseAgent, prompt);
-    const result = response.finalOutput as ExerciseResultType;
+    const resultText = await generativeAIService.generateText({ prompt, systemPrompt: exerciseSystemPrompt });
+    console.log('LearnAgentService: Raw resultText from AI:', resultText);
+    // Extract JSON from markdown code block if present
+    const jsonMatch = resultText.match(/```json\n([\s\S]*?)\n```/);
+    let jsonString = resultText;
+    if (jsonMatch && jsonMatch[1]) {
+      jsonString = jsonMatch[1];
+    }
+    console.log('LearnAgentService: jsonString after extraction:', jsonString);
+    const result = JSON.parse(jsonString) as ExerciseResultType;
     return result.exercises;
   }
 }

@@ -164,6 +164,7 @@ router.get('/context-suggestions', async (req: Request, res: Response) => {
     );
     res.json({ suggestions });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to get context suggestions' });
   }
 });

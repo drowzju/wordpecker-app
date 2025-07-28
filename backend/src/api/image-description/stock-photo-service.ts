@@ -1,7 +1,12 @@
 import { z } from 'zod';
-import { run } from '@openai/agents';
-import { contextualImageAgent } from '../../agents';
+import { getContextualImage } from '../../agents';
 import { ContextualImageResultType } from '../../agents/contextual-image-agent/schemas';
+import { generativeAIService } from '../../services/ai';
+import * as fs from 'fs';
+import * as path from 'path';
+
+const contextualImagePromptPath = path.join(__dirname, '..', '..', 'agents', 'contextual-image-agent', 'prompt.md');
+const contextualImageSystemPrompt = fs.readFileSync(contextualImagePromptPath, 'utf-8');
 
 
 // User-based image tracking to avoid duplicates within sessions
@@ -32,8 +37,8 @@ export class StockPhotoService {
   async findStockImage(context: string, sessionId?: string): Promise<StockPhotoResultType> {
     try {
       // Create search query for Pexels using contextual agent
-      const contextResult = await run(contextualImageAgent, `Generate a search query for stock photos based on this context: ${context}`);
-      const contextualResult = contextResult.finalOutput as ContextualImageResultType;
+      const contextResultText = await generativeAIService.generateText({ prompt: `Generate a search query for stock photos based on this context: ${context}`, systemPrompt: contextualImageSystemPrompt });
+      const contextualResult = JSON.parse(contextResultText) as ContextualImageResultType;
       const searchQuery = contextualResult.searchQuery || context;
       console.log('🔍 Pexels search query:', searchQuery);
       

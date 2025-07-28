@@ -38,3 +38,22 @@ Analyze an image and compare it with a user's description to help them improve t
 - Provide practical vocabulary that can be used in other contexts
 
 Analyze the image and description to create a meaningful learning experience that enhances vocabulary skills.
+
+## Output Format
+
+**CRITICAL:** Your final output MUST be a single, valid JSON object that conforms to the following Zod schema. Do not include any explanatory text, markdown formatting, or anything else outside of the JSON object.
+
+```typescript
+{
+  "corrected_description": string, // Grammar-corrected version of user description
+  "feedback": string, // Encouraging and constructive feedback
+  "recommendations": Array<{ // Relevant vocabulary words that would enhance description (5 to 20 items)
+    "word": string, // The recommended vocabulary word
+    "meaning": string, // Definition in base language
+    "example": string, // Example sentence in target language
+    "difficulty_level": "basic" | "intermediate" | "advanced" // Word difficulty level
+  }>,
+  "user_strengths": string[], // What the user did well in their description
+  "missed_concepts": string[] // Important elements or concepts they missed
+}
+```

@@ -71,6 +71,7 @@ router.post('/generate-words', openaiRateLimiter, validate(generateWordsSchema),
       excludedWords: actuallyExcluded
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to generate vocabulary words' });
   }
 });
@@ -101,7 +102,7 @@ router.post('/get-word-details', openaiRateLimiter, validate(getWordDetailsSchem
       difficulty_level: wordInfo.difficulty_level,
       context: wordInfo.context
     });
-  } catch (error) {
+  } catch (error) {    
     res.status(500).json({ error: 'Failed to get word details' });
   }
 });

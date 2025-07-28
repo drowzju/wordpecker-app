@@ -1,8 +1,19 @@
-import { run } from '@openai/agents';
-import { imageAnalysisAgent, imageGenerationAgent, contextualImageAgent } from '../../agents';
 import { ImageGenerationResultType } from '../../agents/image-generation-agent/schemas';
 import { ImageAnalysisResultType } from '../../agents/image-analysis-agent/schemas';
 import { ContextualImageResultType } from '../../agents/contextual-image-agent/schemas';
+import { getImageAnalysis, getImageGeneration, getContextualImage } from '../../agents';
+import { generativeAIService } from '../../services/ai';
+import * as fs from 'fs';
+import * as path from 'path';
+
+const contextualImagePromptPath = path.join(__dirname, '..', '..', 'agents', 'contextual-image-agent', 'prompt.md');
+const contextualImageSystemPrompt = fs.readFileSync(contextualImagePromptPath, 'utf-8');
+
+const imageGenerationPromptPath = path.join(__dirname, '..', '..', 'agents', 'image-generation-agent', 'prompt.md');
+const imageGenerationSystemPrompt = fs.readFileSync(imageGenerationPromptPath, 'utf-8');
+
+const imageAnalysisPromptPath = path.join(__dirname, '..', '..', 'agents', 'image-analysis-agent', 'prompt.md');
+const imageAnalysisSystemPrompt = fs.readFileSync(imageAnalysisPromptPath, 'utf-8');
 
 
 export class ImageDescriptionAgentService {
@@ -24,15 +35,22 @@ export class ImageDescriptionAgentService {
     const selectedTopic = topics[randomIndex];
     
     const prompt = `Generate a vocabulary learning context similar to "${selectedTopic}" but different. Create a simple, clear topic (2-4 words maximum). Be creative and avoid repeating the same topics.`;
-    const response = await run(contextualImageAgent, prompt);
-    const result = response.finalOutput as ContextualImageResultType;
+    const resultText = await generativeAIService.generateText({ prompt, systemPrompt: contextualImageSystemPrompt });
+    // Extract JSON from markdown code block if present
+    const jsonMatch = resultText.match(/```json\n([\s\S]*?)\n```/);
+    let jsonString = resultText;
+    if (jsonMatch && jsonMatch[1]) {
+      jsonString = jsonMatch[1];
+    }
+    const result = JSON.parse(jsonString) as ContextualImageResultType;
     return result.searchQuery || result.enhancedContext || selectedTopic;
   }
 
   async generateAIImage(context: string, sessionId: string): Promise<ImageGenerationResultType> {
     const imagePrompt = `Generate an AI image for the context "${context}" with session ID ${sessionId}`;
-    const imageResponse = await run(imageGenerationAgent, imagePrompt);
-    return imageResponse.finalOutput as ImageGenerationResultType;
+    const resultText = await generativeAIService.generateText({ prompt: imagePrompt, systemPrompt: imageGenerationSystemPrompt });
+    const imageResponse = JSON.parse(resultText) as ImageGenerationResultType;
+    return imageResponse;
   }
 
   async analyzeDescription(userDescription: string, imageUrl: string, context: string, baseLanguage: string, targetLanguage: string): Promise<ImageAnalysisResultType> {
@@ -45,17 +63,13 @@ Target Language: ${targetLanguage}
 
 Examine the image carefully and provide vocabulary improvement suggestions.`;
     
-    const analysis = await run(imageAnalysisAgent, [
-      { 
-        type: 'message',
-        role: 'user',
-        content: [
-          { type: 'input_text', text: analysisPrompt },
-          { type: 'input_image', image: imageUrl }
-        ]
-      }
-    ]);
-    return analysis.finalOutput as ImageAnalysisResultType;
+    const resultText = await generativeAIService.generateContent({
+      prompt: analysisPrompt,
+      systemPrompt: imageAnalysisSystemPrompt,
+      imageUrl: imageUrl
+    });
+    const analysis = JSON.parse(resultText) as ImageAnalysisResultType;
+    return analysis;
   }
 }
 
