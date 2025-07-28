@@ -33,14 +33,26 @@ export class WordAgentService {
   async generateDefinition(word: string, context: string, baseLanguage: string, targetLanguage: string): Promise<string> {
     const prompt = `Generate a clear definition for the word "${word}" in the context of "${context}". The word is in ${targetLanguage} and the definition should be in ${baseLanguage}.`;
     const resultText = await generativeAIService.generateText({ prompt, systemPrompt: definitionSystemPrompt });
-    const result = JSON.parse(resultText) as DefinitionResultType;
+    // Extract JSON from markdown code block if present
+    const jsonMatch = resultText.match(/```json\n([\s\S]*?)\n```/);
+    let jsonString = resultText;
+    if (jsonMatch && jsonMatch[1]) {
+      jsonString = jsonMatch[1];
+    }
+    const result = JSON.parse(jsonString) as DefinitionResultType;
     return result.definition;
   }
 
   async validateAnswer(userAnswer: string, correctAnswer: string, context: string, baseLanguage: string, targetLanguage: string): Promise<ValidationResultType> {
     const prompt = `Validate if the user's answer "${userAnswer}" is correct for the expected answer "${correctAnswer}". Context: ${context || 'General language exercise'}. User speaks ${baseLanguage} and is learning ${targetLanguage}.`;
     const resultText = await generativeAIService.generateText({ prompt, systemPrompt: validationSystemPrompt });
-    const result = JSON.parse(resultText) as ValidationResultType;
+    // Extract JSON from markdown code block if present
+    const jsonMatch = resultText.match(/```json\n([\s\S]*?)\n```/);
+    let jsonString = resultText;
+    if (jsonMatch && jsonMatch[1]) {
+      jsonString = jsonMatch[1];
+    }
+    const result = JSON.parse(jsonString) as ValidationResultType;
     return result;
   }
 

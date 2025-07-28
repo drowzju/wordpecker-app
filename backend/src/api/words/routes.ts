@@ -63,6 +63,7 @@ router.post('/:listId/words', validate(addWordSchema), async (req, res) => {
     await WordList.findByIdAndUpdate(listId, { updatedAt: new Date() });
     res.status(201).json({ ...transformWord(word, listId), _id: word._id });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -108,6 +109,7 @@ router.post('/validate-answer', validate(validateAnswerSchema), async (req: any,
     const result = await wordAgentService.validateAnswer(userAnswer, correctAnswer, context, baseLanguage, targetLanguage);
     res.json(result);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
