@@ -9,7 +9,13 @@ const promptContent = fs.readFileSync(promptPath, 'utf-8');
 export async function getExamples(prompt: string): Promise<ExamplesResultType> {
   const resultText = await generativeAIService.generateText({ prompt, systemPrompt: promptContent });
   try {
-    return JSON.parse(resultText);
+    // Extract JSON from markdown code block if present
+    const jsonMatch = resultText.match(/```json\n([\s\S]*?)\n```/);
+    let jsonString = resultText;
+    if (jsonMatch && jsonMatch[1]) {
+      jsonString = jsonMatch[1];
+    }
+    return JSON.parse(jsonString);
   } catch (e) {
     console.error('Failed to parse examples result from AI service.', e);
     return { examples: [] };

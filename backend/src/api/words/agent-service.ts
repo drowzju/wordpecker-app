@@ -77,14 +77,26 @@ export class WordAgentService {
   async generateSimilarWords(word: string, meaning: string, context: string, baseLanguage: string, targetLanguage: string): Promise<SimilarWordsResultType> {
     const prompt = `Find similar words and synonyms for the word "${word}" with meaning "${meaning}" in the context of "${context}". Find words in ${targetLanguage} with definitions in ${baseLanguage}.`;
     const resultText = await generativeAIService.generateText({ prompt, systemPrompt: similarWordsSystemPrompt });
-    const similarWords = JSON.parse(resultText) as SimilarWordsResultType;
+    // Extract JSON from markdown code block if present
+    const jsonMatch = resultText.match(/```json\n([\s\S]*?)\n```/);
+    let jsonString = resultText;
+    if (jsonMatch && jsonMatch[1]) {
+      jsonString = jsonMatch[1];
+    }
+    const similarWords = JSON.parse(jsonString) as SimilarWordsResultType;
     return similarWords;
   }
 
   async generateLightReading(words: Array<{value: string, meaning: string}>, context: string, baseLanguage: string, targetLanguage: string): Promise<ReadingResultType> {
     const prompt = `Create an intermediate-level reading passage in ${targetLanguage} that incorporates these vocabulary words: ${words.map(w => `${w.value} (${w.meaning})`).join(', ')}. Context: "${context}". The passage should be suitable for ${baseLanguage} speakers learning ${targetLanguage}.`;
     const resultText = await generativeAIService.generateText({ prompt, systemPrompt: readingSystemPrompt });
-    const reading = JSON.parse(resultText) as ReadingResultType;
+    // Extract JSON from markdown code block if present
+    const jsonMatch = resultText.match(/```json\n([\s\S]*?)\n```/);
+    let jsonString = resultText;
+    if (jsonMatch && jsonMatch[1]) {
+      jsonString = jsonMatch[1];
+    }
+    const reading = JSON.parse(jsonString) as ReadingResultType;
     return reading;
   }
 }

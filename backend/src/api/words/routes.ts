@@ -225,6 +225,7 @@ router.post('/:listId/light-reading', openaiRateLimiter, validate(listIdSchema),
     const reading = await wordAgentService.generateLightReading(wordsForReading, list?.context || 'General', baseLanguage, targetLanguage);
     res.json(reading);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
