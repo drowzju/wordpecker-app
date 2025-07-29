@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { body, query, param, validationResult } from 'express-validator';
 import rateLimit from 'express-rate-limit';
-import { elevenLabsService, AudioGenerationRequest } from '../../services/elevenlabs';
+import { audioService, AudioGenerationRequest } from '../../services/audioService';
 
 const router = Router();
 
@@ -68,7 +68,7 @@ router.post('/generate',
       const userId = req.headers['user-id'] as string;
 
       // Generate audio with user preference integration
-      const result = await elevenLabsService.generateAudio({
+      const result = await audioService.generateAudio({
         text,
         voice,
         language,
@@ -120,7 +120,7 @@ router.get('/cache/:cacheKey',
       const { cacheKey } = req.params;
 
       // Get cached audio
-      const audioBuffer = elevenLabsService.getCachedAudio(cacheKey);
+      const audioBuffer = audioService.getCachedAudio(cacheKey);
       
       if (!audioBuffer) {
         return res.status(404).json({
@@ -178,7 +178,7 @@ router.get('/voices',
       const { language } = req.query;
 
       // Get available voices
-      const voices = await elevenLabsService.getAvailableVoices(language as string);
+      const voices = await audioService.getAvailableVoices(language as string);
 
       res.json({
         success: true,
@@ -241,7 +241,7 @@ router.post('/word-pronunciation',
       }
 
       // Generate audio with user language preferences
-      const result = await elevenLabsService.generateAudio({
+      const result = await audioService.generateAudio({
         text,
         language, // Will use user's target language if not specified
         speed: 0.9, // Slightly slower for word pronunciation
@@ -305,7 +305,7 @@ router.post('/sentence-pronunciation',
       const userId = req.headers['user-id'] as string;
 
       // Generate audio with user language preferences
-      const result = await elevenLabsService.generateAudio({
+      const result = await audioService.generateAudio({
         text: sentence,
         language, // Will use user's target language if not specified
         speed,

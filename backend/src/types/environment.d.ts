@@ -6,6 +6,7 @@ declare global {
       OPENAI_API_KEY: string;
       OPENAI_BASE_URL?: string;
       MONGODB_URL: string;
+      DASHSCOPE_API_KEY?: string;
     }
   }
 }
