@@ -39,6 +39,7 @@ import helmet from 'helmet';
 import { errorHandler } from './middleware/errorHandler';
 import { openaiRateLimiter } from './middleware/rateLimiter';
 import { connectDB } from './config/mongodb';
+import { startCacheCleanupJob } from './services/cacheManager';
 
 
 // Import routes
@@ -96,6 +97,8 @@ if (process.env.NODE_ENV !== 'test') {
   ]).then(() => {
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT} in ${environment.nodeEnv} mode`);
+      // Start the cache cleanup job
+      startCacheCleanupJob();
     });
   }).catch(error => {
     console.error('Failed to initialize application:', error);
