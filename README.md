@@ -6,27 +6,45 @@ A personalized language-learning app that brings the magic of Duolingo-style les
 
 ## 📋 Table of Contents
 
-- [🚀 Quick Start](#-quick-start)
-- [The Idea](#the-idea)
-- [How It Works](#how-it-works)
-- [Demo](#demo)
-- [Roadmap](#roadmap)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Database Setup](#database-setup)
-  - [Configuration](#configuration)
-  - [Development](#development)
-- [Docker Setup (Recommended)](#docker-setup-recommended)
-  - [Quick Start with Docker](#quick-start-with-docker)
-  - [Docker Commands](#docker-commands)
-  - [MongoDB Access](#mongodb-access)
-  - [Running Only MongoDB with Docker](#running-only-mongodb-with-docker)
-  - [Easy Startup Script](#easy-startup-script)
-  - [Troubleshooting](#troubleshooting)
-- [Architecture](#architecture)
-- [Contributing](#contributing)
-- [License](#license)
+- [WordPecker App](#wordpecker-app)
+  - [📋 Table of Contents](#-table-of-contents)
+  - [🚀 Quick Start](#-quick-start)
+  - [The Idea](#the-idea)
+    - [🌳 Vision Garden (My Personal Favorite!)](#-vision-garden-my-personal-favorite)
+    - [📚 Get New Words - Smart Vocabulary Discovery](#-get-new-words---smart-vocabulary-discovery)
+    - [🗣️ Voice Chat](#️-voice-chat)
+    - [🔍 Word Detail Pages - Deep Dive Into Every Word](#-word-detail-pages---deep-dive-into-every-word)
+    - [🔊 Audio Pronunciation System - Every Word Has A Voice](#-audio-pronunciation-system---every-word-has-a-voice)
+    - [Multi-Language](#multi-language)
+    - [Template Library](#template-library)
+    - [📝 Classic Word Lists - The Original Power](#-classic-word-lists---the-original-power)
+  - [How It Works](#how-it-works)
+    - [🎯 Recommended Learning Flow](#-recommended-learning-flow)
+  - [🚀 **The Discovery Path** - For Explorers Who Want Effortless Learning](#-the-discovery-path---for-explorers-who-want-effortless-learning)
+  - [📚 **The Traditional Path** - For Focused Learners Who Know What They Want](#-the-traditional-path---for-focused-learners-who-know-what-they-want)
+  - [Demo](#demo)
+  - [Roadmap](#roadmap)
+    - [✅ Recently Implemented](#-recently-implemented)
+    - [🚀 Coming Next](#-coming-next)
+    - [🎯 Future Vision](#-future-vision)
+  - [Getting Started](#getting-started)
+    - [Prerequisites](#prerequisites)
+    - [Installation](#installation)
+    - [Database Setup](#database-setup)
+    - [sees](#sees)
+    - [Configuration](#configuration)
+    - [Development](#development)
+  - [Docker Setup (Recommended)](#docker-setup-recommended)
+    - [Prerequisites](#prerequisites-1)
+    - [Quick Start with Docker](#quick-start-with-docker)
+    - [Docker Commands](#docker-commands)
+    - [MongoDB Access](#mongodb-access)
+    - [Running Only MongoDB with Docker](#running-only-mongodb-with-docker)
+    - [Easy Startup Script](#easy-startup-script)
+    - [Troubleshooting](#troubleshooting)
+  - [Architecture](#architecture)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 ## 🚀 Quick Start
 
@@ -312,6 +330,11 @@ sudo systemctl start mongodb
 1. Create a free account at https://www.mongodb.com/atlas
 2. Create a new cluster
 3. Get your connection string
+
+
+### sees
+npm run seed:templates
+npm run seed:dictionary
 
 ### Configuration
 
