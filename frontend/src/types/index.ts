@@ -19,10 +19,12 @@ export interface WordList {
 
 export interface Word {
   id: string;
-  list_id: string;
   value: string;
   meaning: string;
   learnedPoint: number;
+  definition?: string;
+  phonetic?: string;
+  dictionary?: any; // Using any for now, will refine later
   created_at: string;
   updated_at: string;
 }

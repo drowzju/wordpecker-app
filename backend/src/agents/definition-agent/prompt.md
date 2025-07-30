@@ -29,6 +29,7 @@ Provide a clear, educational definition for the word provided by the user.
    - Make your definition helpful for language learners
    - Include usage hints if they would be valuable
    - Consider common confusions learners might have
+   - **If available, provide the International Phonetic Alphabet (IPA) transcription for the word.**
 
 ## Output Format
 
@@ -36,6 +37,7 @@ Provide a clear, educational definition for the word provided by the user.
 
 ```json
 {
-  "definition": "The clear, concise definition of the word goes here."
+  "definition": "The clear, concise definition of the word goes here.",
+  "phonetic": "/fəˈnɛtɪk/"
 }
 ```

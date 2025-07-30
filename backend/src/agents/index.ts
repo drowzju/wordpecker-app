@@ -1,7 +1,7 @@
 
 
 // Core vocabulary learning agents
-export { getDefinition } from './definition-agent';
+
 export { getVocabulary } from './vocabulary-agent';
 export { getExercises } from './exercise-agent';
 export { getQuiz } from './quiz-agent';

@@ -474,6 +474,11 @@ export function WordDetailPage() {
                     <Text fontSize="md" fontWeight="medium" wordBreak="break-word" lineHeight="1.6">
                       {context.meaning}
                     </Text>
+                    {wordDetail.phonetic && (
+                      <Text fontSize="sm" color="gray.400" mt={2}>
+                        {wordDetail.phonetic}
+                      </Text>
+                    )}
                   </VStack>
                   
                   <VStack align="end" spacing={2} flexShrink={0}>
@@ -510,6 +515,53 @@ export function WordDetailPage() {
       </VStack>
 
       <Divider my={8} />
+
+      {/* Dictionary Information */}
+      {wordDetail.dictionary && (
+        <Box mb={6}>
+          <Heading as="h2" size={{ base: "md", md: "lg" }} color="blue.400" mb={3}>
+            📖 Dictionary Result
+          </Heading>
+          <VStack spacing={3} align="stretch">
+            {wordDetail.dictionary.flatMap((entry, entryIndex) => 
+              entry.meanings.map((meaning, meaningIndex) => (
+                <Card key={`${entryIndex}-${meaningIndex}`} bg={cardBg} borderColor={borderColor} borderWidth="1px">
+                  <CardBody py={4}>
+                    <VStack align="start" spacing={3} w="full">
+                      <Badge 
+                        colorScheme="purple"
+                        variant="subtle"
+                        fontSize="sm"
+                        px={3}
+                        py={1}
+                        borderRadius="full"
+                      >
+                        {meaning.partOfSpeech}
+                      </Badge>
+                      <VStack align="stretch" spacing={3} w="full">
+                        {meaning.definitions.map((def, defIndex) => (
+                          <Box key={defIndex}>
+                            <Text fontSize="md" fontWeight="medium" wordBreak="break-word" lineHeight="1.6">
+                              {def.definition}
+                            </Text>
+                            {def.example && (
+                              <Text fontSize="sm" color="gray.400" mt={1} fontStyle="italic">
+                                e.g., {def.example}
+                              </Text>
+                            )}
+                          </Box>
+                        ))}
+                      </VStack>
+                    </VStack>
+                  </CardBody>
+                </Card>
+              ))
+            )}
+          </VStack>
+        </Box>
+      )}
+
+      
 
       {/* Sentence Examples Section */}
       <VStack align="stretch" spacing={4}>

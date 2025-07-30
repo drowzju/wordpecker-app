@@ -10,6 +10,9 @@ export interface IWord extends Document {
   _id: mongoose.Types.ObjectId;
   value: string;
   ownedByLists: IWordContext[];
+  definition?: string;
+  phonetic?: string;
+  dictionary?: any[];
   created_at: Date;
   updated_at: Date;
 }
@@ -44,7 +47,10 @@ const WordSchema = new Schema<IWord>({
   ownedByLists: {
     type: [WordContextSchema],
     default: []
-  }
+  },
+  definition: { type: String, trim: true },
+  phonetic: { type: String, trim: true },
+  dictionary: { type: Schema.Types.Mixed },
 }, {
   timestamps: { 
     createdAt: 'created_at', 

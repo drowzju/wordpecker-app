@@ -1,5 +1,4 @@
 import {
-  getDefinition,
   getValidation,
   getSimilarWords,
   getReading,
@@ -11,6 +10,7 @@ import { ExamplesResultType, SentenceExampleType } from '../../agents/examples-a
 import { SimilarWordsResultType } from '../../agents/similar-words-agent/schemas';
 import { ReadingResultType } from '../../agents/reading-agent/schemas';
 import { generativeAIService } from '../../services/ai';
+import { getDictionaryDefinition } from '../../services/dictionaryService';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -30,23 +30,41 @@ const similarWordsPromptPath = path.join(__dirname, '..', '..', 'agents', 'simil
 const similarWordsSystemPrompt = fs.readFileSync(similarWordsPromptPath, 'utf-8');
 
 export class WordAgentService {
-  async generateDefinition(word: string, context: string, baseLanguage: string, targetLanguage: string): Promise<string> {
+  async generateDefinition(word: string, context: string, baseLanguage: string, targetLanguage: string): Promise<DefinitionResultType> {
     const prompt = `Generate a clear definition for the word "${word}" in the context of "${context}". The word is in ${targetLanguage} and the definition should be in ${baseLanguage}.`;
     const resultText = await generativeAIService.generateText({ prompt, systemPrompt: definitionSystemPrompt });
-    // Extract JSON from markdown code block if present
-    const jsonMatch = resultText.match(/```json\n([\s\S]*?)\n```/);
-    let jsonString = resultText;
-    if (jsonMatch && jsonMatch[1]) {
-      jsonString = jsonMatch[1];
+  
+    let definitionResult: DefinitionResultType;
+  
+    try {
+      const jsonMatch = resultText.match(/```json\n([\s\S]*?)\n```/);
+      let jsonString = resultText;
+      if (jsonMatch && jsonMatch[1]) {
+        jsonString = jsonMatch[1];
+      }
+      definitionResult = JSON.parse(jsonString);
+    } catch (e) {
+      console.error('Failed to parse definition result from AI service.', e);
+      definitionResult = { definition: '' };
     }
-    const result = JSON.parse(jsonString) as DefinitionResultType;
-    return result.definition;
+  
+    const dictionaryData = await getDictionaryDefinition(word);
+    if (dictionaryData) {
+      definitionResult.dictionary = dictionaryData;
+      if (!definitionResult.phonetic) {
+        const firstPhonetic = dictionaryData[0]?.phonetics?.find(p => p.text);
+        if (firstPhonetic && firstPhonetic.text) {
+          definitionResult.phonetic = firstPhonetic.text;
+        }
+      }
+    }
+  
+    return definitionResult;
   }
 
   async validateAnswer(userAnswer: string, correctAnswer: string, context: string, baseLanguage: string, targetLanguage: string): Promise<ValidationResultType> {
     const prompt = `Validate if the user's answer "${userAnswer}" is correct for the expected answer "${correctAnswer}". Context: ${context || 'General language exercise'}. User speaks ${baseLanguage} and is learning ${targetLanguage}.`;
     const resultText = await generativeAIService.generateText({ prompt, systemPrompt: validationSystemPrompt });
-    // Extract JSON from markdown code block if present
     const jsonMatch = resultText.match(/```json\n([\s\S]*?)\n```/);
     let jsonString = resultText;
     if (jsonMatch && jsonMatch[1]) {
@@ -60,7 +78,6 @@ export class WordAgentService {
     const prompt = `Generate 3-5 sentence examples for the word "${word}" with meaning "${meaning}" in the context of "${context}". Examples should be in ${targetLanguage} with explanations in ${baseLanguage}.`;
     try {
       const resultText = await generativeAIService.generateText({ prompt, systemPrompt: examplesSystemPrompt });
-      // Extract JSON from markdown code block if present
       const jsonMatch = resultText.match(/```json\n([\s\S]*?)\n```/);
       let jsonString = resultText;
       if (jsonMatch && jsonMatch[1]) {
@@ -77,7 +94,6 @@ export class WordAgentService {
   async generateSimilarWords(word: string, meaning: string, context: string, baseLanguage: string, targetLanguage: string): Promise<SimilarWordsResultType> {
     const prompt = `Find similar words and synonyms for the word "${word}" with meaning "${meaning}" in the context of "${context}". Find words in ${targetLanguage} with definitions in ${baseLanguage}.`;
     const resultText = await generativeAIService.generateText({ prompt, systemPrompt: similarWordsSystemPrompt });
-    // Extract JSON from markdown code block if present
     const jsonMatch = resultText.match(/```json\n([\s\S]*?)\n```/);
     let jsonString = resultText;
     if (jsonMatch && jsonMatch[1]) {
@@ -90,7 +106,6 @@ export class WordAgentService {
   async generateLightReading(words: Array<{value: string, meaning: string}>, context: string, baseLanguage: string, targetLanguage: string): Promise<ReadingResultType> {
     const prompt = `Create an intermediate-level reading passage in ${targetLanguage} that incorporates these vocabulary words: ${words.map(w => `${w.value} (${w.meaning})`).join(', ')}. Context: "${context}". The passage should be suitable for ${baseLanguage} speakers learning ${targetLanguage}.`;
     const resultText = await generativeAIService.generateText({ prompt, systemPrompt: readingSystemPrompt });
-    // Extract JSON from markdown code block if present
     const jsonMatch = resultText.match(/```json\n([\s\S]*?)\n```/);
     let jsonString = resultText;
     if (jsonMatch && jsonMatch[1]) {

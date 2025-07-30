@@ -50,7 +50,6 @@ const cleanupOldCacheFiles = async () => {
 export const startCacheCleanupJob = () => {
   // Cron schedule: at minute 0 past hour 11 and 19 every day.
   cron.schedule('0 11,19 * * *', cleanupOldCacheFiles, {
-    scheduled: true,
     timezone: 'Asia/Shanghai', // You can adjust the timezone if needed
   });
 

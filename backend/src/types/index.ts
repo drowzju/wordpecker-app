@@ -1,3 +1,5 @@
+import { DictionaryEntry } from "../services/dictionaryService";
+
 export interface WordList {
   id: string;
   name: string;
@@ -20,6 +22,9 @@ export interface Word {
   id: string;
   value: string;
   ownedByLists: WordContext[];
+  definition?: string;
+  phonetic?: string;
+  dictionary?: DictionaryEntry[];
   created_at: string;
   updated_at: string;
 }

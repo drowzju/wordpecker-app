@@ -24,6 +24,9 @@ const transformWord = (word: IWord, listId: string) => {
     value: word.value,
     meaning: context?.meaning || '',
     learnedPoint: context?.learnedPoint || 0,
+    definition: word.definition,
+    phonetic: word.phonetic,
+    dictionary: word.dictionary,
     created_at: word.created_at.toISOString(),
     updated_at: word.updated_at.toISOString()
   };
@@ -37,12 +40,14 @@ router.post('/:listId/words', validate(addWordSchema), async (req, res) => {
     const list = await WordList.findById(listId).lean();
     if (!list) return res.status(404).json({ message: 'List not found' });
 
-    const definition = providedMeaning?.trim() || await (async () => {
+    const definitionResult = await (async () => {
       const userId = req.headers['user-id'] as string;
       if (!userId) throw new Error('User ID is required');
       const { baseLanguage, targetLanguage } = await getUserLanguages(userId);
       return wordAgentService.generateDefinition(value, list.context || '', baseLanguage, targetLanguage);
     })();
+
+    console.log('Definition result from agent:', JSON.stringify(definitionResult, null, 2));
 
     const normalizedValue = value.toLowerCase().trim();
     let word = await Word.findOne({ value: normalizedValue });
@@ -51,13 +56,18 @@ router.post('/:listId/words', validate(addWordSchema), async (req, res) => {
       if (word.ownedByLists.some(ctx => ctx.listId.toString() === listId)) {
         return res.status(400).json({ message: 'Word already exists in this list' });
       }
-      word.ownedByLists.push({ listId: new mongoose.Types.ObjectId(listId), meaning: definition, learnedPoint: 0 });
+      word.ownedByLists.push({ listId: new mongoose.Types.ObjectId(listId), meaning: definitionResult.definition, learnedPoint: 0 });
       await word.save();
     } else {
-      word = await Word.create({
+      const newWordData = {
         value: normalizedValue,
-        ownedByLists: [{ listId: new mongoose.Types.ObjectId(listId), meaning: definition, learnedPoint: 0 }]
-      });
+        ownedByLists: [{ listId: new mongoose.Types.ObjectId(listId), meaning: definitionResult.definition, learnedPoint: 0 }],
+        definition: definitionResult.definition,
+        phonetic: definitionResult.phonetic,
+        dictionary: definitionResult.dictionary,
+      };
+      console.log('Creating new word with data:', JSON.stringify(newWordData, null, 2));
+      word = await Word.create(newWordData);
     }
 
     await WordList.findByIdAndUpdate(listId, { updatedAt: new Date() });
@@ -137,6 +147,9 @@ router.get('/word/:wordId', validate(wordIdSchema), async (req, res) => {
       id: word._id.toString(),
       value: word.value,
       contexts,
+      definition: word.definition,
+      phonetic: word.phonetic,
+      dictionary: word.dictionary,
       created_at: word.created_at.toISOString(),
       updated_at: word.updated_at.toISOString()
     });
@@ -230,4 +243,4 @@ router.post('/:listId/light-reading', openaiRateLimiter, validate(listIdSchema),
   }
 });
 
-export default router; 
+export default router;
