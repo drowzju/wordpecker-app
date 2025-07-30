@@ -278,8 +278,8 @@ router.post('/sentence-pronunciation',
   [
     body('sentence')
       .isString()
-      .isLength({ min: 1, max: 1000 })
-      .withMessage('Sentence must be between 1 and 1000 characters'),
+      .isLength({ min: 1, max: 2500 })
+      .withMessage('Sentence must be between 1 and 2500 characters'),
     body('language')
       .optional()
       .isString()
