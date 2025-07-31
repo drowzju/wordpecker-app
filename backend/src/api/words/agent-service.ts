@@ -91,6 +91,23 @@ export class WordAgentService {
     }
   }
 
+  async generateExampleDetails(sentence: string, baseLanguage: string, targetLanguage: string, context: string): Promise<{ translation: string, context_and_usage: string }> {
+    const prompt = `For the sentence "${sentence}" in ${targetLanguage}, provide a translation in ${baseLanguage} and explain the context and usage. The context is ${context}. Please conform to the 'For Generating Details for a Single Sentence' schema.`;
+    const resultText = await generativeAIService.generateText({ prompt, systemPrompt: examplesSystemPrompt });
+    const jsonMatch = resultText.match(/```json\n([\s\S]*?)\n```/);
+    let jsonString = resultText;
+    if (jsonMatch && jsonMatch[1]) {
+      jsonString = jsonMatch[1];
+    }
+    try {
+      const result = JSON.parse(jsonString);
+      return result;
+    } catch (e) {
+      console.error('Failed to parse example details from AI service.', e);
+      throw new Error('Failed to generate example details.');
+    }
+  }
+
   async generateSimilarWords(word: string, meaning: string, context: string, baseLanguage: string, targetLanguage: string): Promise<SimilarWordsResultType> {
     const prompt = `Find similar words and synonyms for the word "${word}" with meaning "${meaning}" in the context of "${context}". Find words in ${targetLanguage} with definitions in ${baseLanguage}.`;
     const resultText = await generativeAIService.generateText({ prompt, systemPrompt: similarWordsSystemPrompt });

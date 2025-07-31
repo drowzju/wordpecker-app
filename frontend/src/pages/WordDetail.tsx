@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -34,9 +34,11 @@ import {
   useDisclosure,
   Select,
   FormControl,
-  FormLabel
+  FormLabel,
+  Textarea,
+  Input
 } from '@chakra-ui/react';
-import { FaArrowLeft, FaLightbulb, FaBookOpen, FaEye, FaEyeSlash, FaCamera, FaRobot, FaExchangeAlt, FaPlus } from 'react-icons/fa';
+import { FaArrowLeft, FaLightbulb, FaBookOpen, FaEye, FaEyeSlash, FaCamera, FaRobot, FaExchangeAlt, FaPlus, FaTrash } from 'react-icons/fa';
 import { apiService } from '../services/api';
 import { WordDetail, SentenceExample, SimilarWordsResponse, WordList } from '../types';
 import PronunciationButton from '../components/PronunciationButton';
@@ -46,7 +48,6 @@ export function WordDetailPage() {
   const navigate = useNavigate();
   
   const [wordDetail, setWordDetail] = useState<WordDetail | null>(null);
-  const [sentences, setSentences] = useState<SentenceExample[]>([]);
   const [loading, setLoading] = useState(true);
   const [sentencesLoading, setSentencesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,11 +63,13 @@ export function WordDetailPage() {
   const [selectedListId, setSelectedListId] = useState('');
   const [createNewList, setCreateNewList] = useState(false);
   const [addingWords, setAddingWords] = useState(false);
-  
+  const [newSentence, setNewSentence] = useState('');
+  const [isAddingSentence, setIsAddingSentence] = useState(false);
+
+  const { isOpen: isAddSentenceModalOpen, onOpen: onAddSentenceModalOpen, onClose: onAddSentenceModalClose } = useDisclosure();
   const { isOpen, onOpen, onClose: originalOnClose } = useDisclosure();
   
   const onClose = () => {
-    // Reset modal state when closing
     setCreateNewList(false);
     originalOnClose();
   };
@@ -89,6 +92,9 @@ export function WordDetailPage() {
     try {
       const data = await apiService.getWordDetails(wordId);
       setWordDetail(data);
+      if (data.examples && data.examples.length > 0) {
+        setShowSentences(true);
+      }
     } catch (err) {
       setError('Failed to load word details');
       console.error('Error loading word details:', err);
@@ -103,9 +109,8 @@ export function WordDetailPage() {
     setSentencesLoading(true);
     
     try {
-      // Pass the selected context index to generate examples for only that context
       const data = await apiService.generateWordSentences(wordId, selectedContextIndex);
-      setSentences(data.examples);
+      setWordDetail(prev => prev ? { ...prev, examples: data.examples } : null);
       setShowSentences(true);
       
       const selectedContext = wordDetail?.contexts[selectedContextIndex];
@@ -132,13 +137,65 @@ export function WordDetailPage() {
     }
   };
 
+  const handleAddSentence = async () => {
+    if (!wordId || !newSentence.trim()) return;
+
+    setIsAddingSentence(true);
+    try {
+      const newExample = await apiService.addExample(wordId, newSentence.trim());
+      setWordDetail(prev => prev ? { ...prev, examples: [...(prev.examples || []), newExample] } : null);
+      setNewSentence('');
+      onAddSentenceModalClose();
+      toast({
+        title: 'Example Added!',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error('Error adding sentence:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to add example. Please try again.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsAddingSentence(false);
+    }
+  };
+
+  const handleDeleteSentence = async (exampleId: string) => {
+    if (!wordId) return;
+
+    try {
+      await apiService.deleteExample(wordId, exampleId);
+      setWordDetail(prev => prev ? { ...prev, examples: prev.examples?.filter(ex => ex.id !== exampleId) } : null);
+      toast({
+        title: 'Example Deleted!',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error('Error deleting sentence:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete example. Please try again.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
   const loadSimilarWords = async () => {
     if (!wordId || similarWordsLoading) return;
     
     setSimilarWordsLoading(true);
     
     try {
-      // Use the selected context index (for visual learning) for similar words generation
       const data = await apiService.generateSimilarWords(wordId, selectedContextIndex);
       setSimilarWords(data);
       setShowSimilarWords(true);
@@ -203,7 +260,6 @@ export function WordDetailPage() {
     try {
       let targetListId = selectedListId;
       
-      // Create new list if needed
       if (createNewList) {
         const listName = `📚 ${similarWords.context}`;
         const newList = await apiService.createList({
@@ -224,7 +280,6 @@ export function WordDetailPage() {
         });
       }
 
-      // Get all words (synonyms + interchangeable) and filter selected ones
       const allWords = [
         ...similarWords.similar_words.synonyms,
         ...similarWords.similar_words.interchangeable_words
@@ -232,7 +287,6 @@ export function WordDetailPage() {
       
       const selectedWordObjects = allWords.filter(word => selectedWords.includes(word.word));
       
-      // Add each selected word to the list
       let addedCount = 0;
       const failedWords: string[] = [];
       
@@ -264,7 +318,6 @@ export function WordDetailPage() {
         });
       }
       
-      // Reset selection and close modal
       setSelectedWords([]);
       onClose();
     } catch (error) {
@@ -291,15 +344,12 @@ export function WordDetailPage() {
     const selectedContext = wordDetail.contexts[selectedContextIndex];
     const contextName = selectedContext.listContext || selectedContext.listName;
     
-    // Combine word and context for better image generation
     const combinedPrompt = `${wordDetail.value} in ${contextName} context`;
     
     setGeneratingImage(imageSource);
     try {
-      // Use the combined word+context prompt for image generation
       const data = await apiService.startDescriptionExercise(combinedPrompt, imageSource);
       
-      // Store the generated image to display below
       setGeneratedImage({
         url: data.image.url,
         alt: data.image.alt,
@@ -572,47 +622,81 @@ export function WordDetailPage() {
               Example Sentences
             </Heading>
           </HStack>
-          <Button
-            leftIcon={showSentences ? <FaEyeSlash /> : <FaEye />}
-            onClick={() => showSentences ? setShowSentences(false) : loadSentences()}
-            colorScheme="orange"
-            variant="outline"
-            size="sm"
-            isLoading={sentencesLoading}
-            loadingText="Generating..."
-            flexShrink={0}
-          >
-            {showSentences ? 'Hide' : 'Generate'} Examples
-          </Button>
+          <HStack>
+            <Button
+              leftIcon={<FaPlus />}
+              onClick={onAddSentenceModalOpen}
+              colorScheme="green"
+              variant="outline"
+              size="sm"
+              flexShrink={0}
+              isDisabled={(wordDetail.examples?.length || 0) >= 10}
+            >
+              Add Example
+            </Button>
+            <Button
+              leftIcon={<FaLightbulb />}
+              onClick={loadSentences}
+              colorScheme="orange"
+              variant="outline"
+              size="sm"
+              isLoading={sentencesLoading}
+              loadingText="Generating..."
+              flexShrink={0}
+              isDisabled={(wordDetail.examples?.length || 0) >= 10}
+            >
+              Generate Examples
+            </Button>
+            {wordDetail.examples && wordDetail.examples.length > 0 && (
+              <Button
+                leftIcon={showSentences ? <FaEyeSlash /> : <FaEye />}
+                onClick={() => setShowSentences(!showSentences)}
+                colorScheme="gray"
+                variant="outline"
+                size="sm"
+                flexShrink={0}
+              >
+                {showSentences ? 'Hide' : 'Show'} Examples
+              </Button>
+            )}
+          </HStack>
         </Flex>
 
         <Collapse in={showSentences} animateOpacity>
           <VStack align="stretch" spacing={3}>
-            {sentences.map((example, index) => (
+            {wordDetail.examples?.map((example, index) => (
               <Card key={index} bg={cardBg} borderColor={borderColor} borderWidth="1px">
                 <CardBody>
                   <VStack align="stretch" spacing={4}>
-                    {/* Example Sentence */}
                     <Box>
                       <HStack justify="space-between" align="center" mb={1}>
                         <Text fontSize="xs" fontWeight="bold" color="blue.400" textTransform="uppercase">
                           Example Sentence
                         </Text>
-                        <PronunciationButton
-                          text={example.sentence}
-                          type="sentence"
-                          language="en" // TODO: Get from user preferences
-                          size="sm"
-                          colorScheme="blue"
-                          tooltipText="Listen to example sentence"
-                        />
+                        <HStack>
+                          <PronunciationButton
+                            text={example.sentence}
+                            type="sentence"
+                            language="en" // TODO: Get from user preferences
+                            size="sm"
+                            colorScheme="blue"
+                            tooltipText="Listen to example sentence"
+                          />
+                          <IconButton
+                            aria-label="Delete example"
+                            icon={<FaTrash />}
+                            size="sm"
+                            variant="ghost"
+                            colorScheme="red"
+                            onClick={() => handleDeleteSentence(example.id)}
+                          />
+                        </HStack>
                       </HStack>
                       <Text fontSize="lg" fontStyle="italic" wordBreak="break-word" lineHeight="1.6" fontWeight="medium">
                         "{example.sentence}"
                       </Text>
                     </Box>
                     
-                    {/* Translation */}
                     {example.translation && (
                       <Box>
                         <Text fontSize="xs" fontWeight="bold" color="green.400" mb={1} textTransform="uppercase">
@@ -624,14 +708,13 @@ export function WordDetailPage() {
                       </Box>
                     )}
                     
-                    {/* Context Note */}
-                    {(example.context_note || example.explanation) && (
+                    {example.context_and_usage && (
                       <Box>
                         <Text fontSize="xs" fontWeight="bold" color="purple.400" mb={1} textTransform="uppercase">
                           Context & Usage
                         </Text>
                         <Text fontSize="sm" color="gray.400" wordBreak="break-word" lineHeight="1.5">
-                          💡 {example.context_note || example.explanation}
+                          💡 {example.context_and_usage}
                         </Text>
                       </Box>
                     )}
@@ -640,10 +723,10 @@ export function WordDetailPage() {
               </Card>
             ))}
             
-            {sentences.length === 0 && showSentences && (
+            {(!wordDetail.examples || wordDetail.examples.length === 0) && showSentences && (
               <Alert status="info" borderRadius="md">
                 <AlertIcon />
-                No examples available for this context.
+                No examples available. Generate or add one.
               </Alert>
             )}
           </VStack>
@@ -690,7 +773,6 @@ export function WordDetailPage() {
           </HStack>
         </Flex>
 
-        {/* Generated Image Display */}
         {generatedImage && (
           <Box>
             <Text fontSize="sm" color="gray.400" mb={3}>
@@ -738,7 +820,6 @@ export function WordDetailPage() {
         <Collapse in={showSimilarWords} animateOpacity>
           {similarWords && (
             <VStack align="stretch" spacing={6}>
-              {/* Synonyms Section */}
               {similarWords.similar_words?.synonyms && similarWords.similar_words.synonyms.length > 0 && (
                 <Box>
                   <Heading as="h3" size="md" color="teal.400" mb={4} display="flex" alignItems="center" gap={2}>
@@ -797,7 +878,6 @@ export function WordDetailPage() {
                 </Box>
               )}
 
-              {/* Interchangeable Words Section */}
               {similarWords.similar_words.interchangeable_words.length > 0 && (
                 <Box>
                   <Heading as="h3" size="md" color="cyan.400" mb={4} display="flex" alignItems="center" gap={2}>
@@ -856,7 +936,6 @@ export function WordDetailPage() {
                 </Box>
               )}
 
-              {/* Add Selected Words Button */}
               {(similarWords.similar_words.synonyms.length > 0 || similarWords.similar_words.interchangeable_words.length > 0) && (
                 <Box textAlign="center" pt={4}>
                   <Text fontSize="sm" color="gray.400" mb={3}>
@@ -884,7 +963,6 @@ export function WordDetailPage() {
                 </Box>
               )}
 
-              {/* Empty State */}
               {(!similarWords.similar_words.synonyms.length && !similarWords.similar_words.interchangeable_words.length) && (
                 <Alert status="info" borderRadius="md">
                   <AlertIcon />
@@ -904,6 +982,37 @@ export function WordDetailPage() {
         </HStack>
       </Box>
 
+      {/* Add Sentence Modal */}
+      <Modal isOpen={isAddSentenceModalOpen} onClose={onAddSentenceModalClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Add New Example</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <FormControl>
+              <FormLabel>Sentence</FormLabel>
+              <Textarea 
+                value={newSentence} 
+                onChange={(e) => setNewSentence(e.target.value)} 
+                placeholder="Enter a new sentence for the word"
+              />
+            </FormControl>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={onAddSentenceModalClose}>
+              Cancel
+            </Button>
+            <Button
+              colorScheme="blue"
+              onClick={handleAddSentence}
+              isLoading={isAddingSentence}
+            >
+              Add Example
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
       {/* Add Words to List Modal */}
       <Modal isOpen={isOpen} onClose={onClose} size="md">
         <ModalOverlay />
@@ -919,7 +1028,6 @@ export function WordDetailPage() {
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={4} align="stretch">
-              {/* Selected Words Preview */}
               <Box>
                 <Text fontSize="sm" fontWeight="medium" color="teal.600" mb={2}>
                   Selected Words:

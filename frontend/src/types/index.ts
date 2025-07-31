@@ -41,15 +41,16 @@ export interface WordDetail {
   id: string;
   value: string;
   contexts: WordContext[];
+  examples?: SentenceExample[];
   created_at: string;
   updated_at: string;
 }
 
 export interface SentenceExample {
+  id: string;
   sentence: string;
-  translation?: string | null;
-  context_note?: string;
-  explanation?: string; // Keep for backward compatibility
+  translation: string;
+  context_and_usage: string;
 }
 
 export interface Exercise {

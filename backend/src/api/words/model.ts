@@ -13,6 +13,7 @@ export interface IWord extends Document {
   definition?: string;
   phonetic?: string;
   dictionary?: any[];
+  examples?: { id: string; sentence: string; translation: string; context_and_usage: string; }[];
   created_at: Date;
   updated_at: Date;
 }
@@ -51,6 +52,7 @@ const WordSchema = new Schema<IWord>({
   definition: { type: String, trim: true },
   phonetic: { type: String, trim: true },
   dictionary: { type: Schema.Types.Mixed },
+  examples: { type: Array, default: [] },
 }, {
   timestamps: { 
     createdAt: 'created_at', 

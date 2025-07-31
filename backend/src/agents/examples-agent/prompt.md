@@ -43,7 +43,11 @@ Create sentence examples that serve as effective learning tools and practical us
 
 ## Output Format
 
-**CRITICAL:** Your final output MUST be a single, valid JSON object that conforms to the following Zod schema. Do not include any explanatory text, markdown formatting, or anything else outside of the JSON object.
+**CRITICAL:** Your final output MUST be a single, valid JSON object. Do not include any explanatory text, markdown formatting, or anything else outside of the JSON object.
+
+### For Generating Multiple Examples
+
+Conform to the following Zod schema:
 
 ```json
 {
@@ -54,5 +58,16 @@ Create sentence examples that serve as effective learning tools and practical us
       "context_note": "An explanation of how the word is used in this specific context."
     }
   ]
+}
+```
+
+### For Generating Details for a Single Sentence
+
+Conform to the following Zod schema:
+
+```json
+{
+  "translation": "The translation of the sentence in the base language.",
+  "context_and_usage": "An explanation of how the word is used in this specific context."
 }
 ```

@@ -150,6 +150,7 @@ router.get('/word/:wordId', validate(wordIdSchema), async (req, res) => {
       definition: word.definition,
       phonetic: word.phonetic,
       dictionary: word.dictionary,
+      examples: word.examples,
       created_at: word.created_at.toISOString(),
       updated_at: word.updated_at.toISOString()
     });
@@ -158,13 +159,13 @@ router.get('/word/:wordId', validate(wordIdSchema), async (req, res) => {
   }
 });
 
-router.post('/word/:wordId/sentences', validate(wordContextSchema), async (req, res) => {
+router.post('/word/:wordId/generate-examples', validate(wordContextSchema), async (req, res) => {
   try {
     const { wordId } = req.params;
     const { contextIndex } = req.body;
 
-    const word = await Word.findById(wordId).lean();
-    if (!word || contextIndex >= word.ownedByLists.length) {
+    const word = await Word.findById(wordId);
+    if (!word || !word.ownedByLists || contextIndex >= word.ownedByLists.length) {
       return res.status(404).json({ message: 'Word not found or invalid context' });
     }
 
@@ -174,11 +175,87 @@ router.post('/word/:wordId/sentences', validate(wordContextSchema), async (req, 
 
     const userId = req.headers['user-id'] as string;
     const { baseLanguage, targetLanguage } = await getUserLanguages(userId);
-    const sentences = await wordAgentService.generateExamples(word.value, wordContext.meaning, context, baseLanguage, targetLanguage);
+    const examples = await wordAgentService.generateExamples(word.value, wordContext.meaning, context, baseLanguage, targetLanguage);
 
-    res.json({ examples: sentences });
+    const newExamples = examples.map(ex => ({
+      id: new mongoose.Types.ObjectId().toHexString(),
+      sentence: ex.sentence,
+      translation: ex.translation || '',
+      context_and_usage: ex.context_note
+    }));
+
+    if (!word.examples) {
+      word.examples = [];
+    }
+    word.examples.push(...newExamples);
+    if (word.examples.length > 10) {
+      word.examples = word.examples.slice(word.examples.length - 10);
+    }
+
+    await word.save();
+
+    res.json({ examples: word.examples });
   } catch (error) {
-    console.error(error); 
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+router.post('/word/:wordId/examples', async (req, res) => {
+  try {
+    const { wordId } = req.params;
+    const { sentence } = req.body;
+
+    const word = await Word.findById(wordId);
+    if (!word) {
+      return res.status(404).json({ message: 'Word not found' });
+    }
+
+    if (word.examples && word.examples.length >= 10) {
+      return res.status(400).json({ message: 'Maximum number of examples reached' });
+    }
+
+    const userId = req.headers['user-id'] as string;
+    const { baseLanguage, targetLanguage } = await getUserLanguages(userId);
+    const context = word.ownedByLists[0]?.meaning || 'General';
+    const { translation, context_and_usage } = await wordAgentService.generateExampleDetails(sentence, baseLanguage, targetLanguage, context);
+
+    const newExample = {
+      id: new mongoose.Types.ObjectId().toHexString(),
+      sentence,
+      translation,
+      context_and_usage
+    };
+
+    if (!word.examples) {
+      word.examples = [];
+    }
+
+    word.examples.push(newExample);
+    await word.save();
+
+    res.status(201).json(newExample);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+router.delete('/word/:wordId/examples/:exampleId', async (req, res) => {
+  try {
+    const { wordId, exampleId } = req.params;
+
+    const word = await Word.findById(wordId);
+    if (!word || !word.examples) {
+      return res.status(404).json({ message: 'Word or example not found' });
+    }
+
+    word.examples = word.examples.filter(ex => ex.id !== exampleId);
+    await word.save();
+
+    res.status(204).send();
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });

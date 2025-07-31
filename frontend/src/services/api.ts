@@ -103,7 +103,11 @@ export const apiService = {
   // Word Details
   getWordDetails: (wordId: string): ApiResponse<WordDetail> => api.get(`/api/lists/word/${wordId}`),
   generateWordSentences: (wordId: string, contextIndex?: number): ApiResponse<{word: string, examples: SentenceExample[]}> => 
-    api.post(`/api/lists/word/${wordId}/sentences`, { contextIndex }),
+    api.post(`/api/lists/word/${wordId}/generate-examples`, { contextIndex }),
+  addExample: (wordId: string, sentence: string): ApiResponse<SentenceExample> => 
+    api.post(`/api/lists/word/${wordId}/examples`, { sentence }),
+  deleteExample: (wordId: string, exampleId: string): ApiResponse<void> => 
+    api.delete(`/api/lists/word/${wordId}/examples/${exampleId}`),
   generateSimilarWords: (wordId: string, contextIndex?: number): ApiResponse<{
     word: string;
     meaning: string;

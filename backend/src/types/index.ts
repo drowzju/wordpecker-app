@@ -18,6 +18,13 @@ export interface WordContext {
   learnedPoint: number;
 }
 
+export interface Example {
+  id: string;
+  sentence: string;
+  translation: string;
+  context_and_usage: string;
+}
+
 export interface Word {
   id: string;
   value: string;
@@ -25,6 +32,7 @@ export interface Word {
   definition?: string;
   phonetic?: string;
   dictionary?: DictionaryEntry[];
+  examples?: Example[];
   created_at: string;
   updated_at: string;
 }
