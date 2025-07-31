@@ -144,6 +144,7 @@ export function WordDetailPage() {
     try {
       const newExample = await apiService.addExample(wordId, newSentence.trim());
       setWordDetail(prev => prev ? { ...prev, examples: [...(prev.examples || []), newExample] } : null);
+      setShowSentences(true);
       setNewSentence('');
       onAddSentenceModalClose();
       toast({
