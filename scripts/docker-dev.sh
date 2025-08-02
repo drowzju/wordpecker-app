@@ -10,7 +10,7 @@ if [ ! -f .env ]; then
     cp .env.docker .env
     echo "✅ Created .env file. Please edit it and add your API keys."
     echo "📝 Edit .env file and set OPENAI_API_KEY=your_actual_key_here"
-    echo "📝 Optionally set PEXELS_API_KEY=your_actual_key_here for Vision Garden stock photos"
+
     echo "📝 Optionally set ELEVENLABS_API_KEY=your_actual_key_here for audio features"
     exit 1
 fi
@@ -19,7 +19,7 @@ fi
 if ! grep -q "OPENAI_API_KEY=sk-" .env && ! grep -q "OPENAI_API_KEY=your_" .env; then
     echo "⚠️  OpenAI API key not found in .env file"
     echo "📝 Please edit .env file and set OPENAI_API_KEY=your_actual_key_here"
-    echo "📝 Optionally set PEXELS_API_KEY=your_actual_key_here for Vision Garden stock photos"
+
     echo "📝 Optionally set ELEVENLABS_API_KEY=your_actual_key_here for audio features"
     exit 1
 fi

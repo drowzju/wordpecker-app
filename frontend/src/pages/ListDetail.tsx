@@ -361,33 +361,7 @@ export const ListDetail = () => {
             >
               Light Reading
             </Button>
-            <Button 
-              variant="ghost"
-              leftIcon={<FaMicrophone />}
-              colorScheme="blue"
-              _hover={{ 
-                transform: 'translateY(-2px)',
-              }}
-              transition="all 0.2s"
-              size="lg"
-              isDisabled={words.length === 0}
-              onClick={() => navigate(`/voice-chat/${list!.id}`, { 
-                state: { 
-                  config: {
-                    listId: list!.id,
-                    listName: list!.name,
-                    listContext: list!.context,
-                    userLanguages: {
-                      baseLanguage: userPreferences?.baseLanguage || 'English',
-                      targetLanguage: userPreferences?.targetLanguage || 'English'
-                    }
-                  },
-                  listName: list!.name
-                } 
-              })}
-            >
-              Voice Chat
-            </Button>
+            
             <Button 
               variant="solid"
               colorScheme="green"

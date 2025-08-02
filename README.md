@@ -10,9 +10,9 @@ A personalized language-learning app that brings the magic of Duolingo-style les
   - [📋 Table of Contents](#-table-of-contents)
   - [🚀 Quick Start](#-quick-start)
   - [The Idea](#the-idea)
-    - [🌳 Vision Garden (My Personal Favorite!)](#-vision-garden-my-personal-favorite)
+    
     - [📚 Get New Words - Smart Vocabulary Discovery](#-get-new-words---smart-vocabulary-discovery)
-    - [🗣️ Voice Chat](#️-voice-chat)
+    
     - [🔍 Word Detail Pages - Deep Dive Into Every Word](#-word-detail-pages---deep-dive-into-every-word)
     - [🔊 Audio Pronunciation System - Every Word Has A Voice](#-audio-pronunciation-system---every-word-has-a-voice)
     - [Multi-Language](#multi-language)
@@ -74,15 +74,7 @@ In the previous version, you'd read your book, encounter new words, create a lis
 
 But here's where it gets exciting – **we've added a new feature to discover and encounter new words**. Instead of manually hunting down vocabulary, you can now encounter words naturally with much less effort:
 
-### 🌳 Vision Garden (My Personal Favorite!)
 
-Imagine looking at images and describing them to discover new vocabulary. You can use LLM-generated images or real stock photos, describe what you see, and agent analyzes your description to suggest contextual vocabulary words you might not know. It's like having a personal tutor who shows you pictures and helps you expand your vocabulary naturally. The agent considers your current vocabulary and suggests words that fit your learning level and context.
-
-<p align="center">
-  <img src="./docs/assets/vision-garden.png" alt="Vision Garden" width="600" />
-  <br/>
-  <a href="https://www.youtube.com/watch?v=skGrxA_NYCk&list=PLAE8NedfKVQ8n9Qy0deYqgJ-HK2K7MjEj&index=2">📹 Watch on YouTube</a>
-</p>
 
 ### 📚 Get New Words - Smart Vocabulary Discovery
 
@@ -102,21 +94,13 @@ No more manually searching for words – just pick a theme and difficulty, and g
   <a href="https://www.youtube.com/watch?v=S-X8BMQb8t8&list=PLAE8NedfKVQ8n9Qy0deYqgJ-HK2K7MjEj&index=8">📹 Watch on YouTube</a>
 </p>
 
-### 🗣️ Voice Chat
 
-This is where things get really interactive. Using OpenAI's voice agents you can have actual spoken conversations with an LLM tutor about your vocabulary words. Practice pronunciation, ask questions, and get instant feedback through natural speech. It's like having a language exchange partner available 24/7 who knows exactly what words you're learning. The voice agent has access to your list and help you learn the words you already have and it can add new words to your lists by using the tool.
-
-<p align="center">
-  <img src="./docs/assets/voice-chat.png" alt="Voice Chat" width="600" />
-  <br/>
-  <a href="https://www.youtube.com/watch?v=UqzDbP8FxAw&list=PLAE8NedfKVQ8n9Qy0deYqgJ-HK2K7MjEj&index=1">📹 Watch on YouTube</a>
-</p>
 
 Once you've discovered words through these methods, you can:
 
 - **Learn**: Practice with 5 different question types (multiple choice, fill-in-the-blank, matching, true/false, and sentence completion) - all configurable in your settings
 - **Quiz**: Test your knowledge and track your progress with learned points
-- **Voice Practice**: Have conversations about your vocabulary with the LLM voice tutor
+
 - **Light Reading**: Generate reading passages that highlight your vocabulary words in context
 
 <p align="center">
@@ -201,7 +185,7 @@ Choose the approach that fits your learning style and situation:
 Perfect when you want to expand your vocabulary without the effort of hunting for words:
 
 1. **Discover Words Naturally**: 
-   - **Vision Garden**: Look at images in generated context, describe what you see, and get vocabulary suggestions based on what you missed or could express better
+   
    - **Get New Words**: Create a session with any context you're interested in, then go through interactive know/don't know sessions with LLM-generated vocabulary that fits your learning level
 
 2. **Build Your Collection**: 
@@ -214,7 +198,7 @@ Perfect when you want to expand your vocabulary without the effort of hunting fo
    - Add discovered similar words to expand your vocabulary further
 
 4. **Practice & Reinforce**: 
-   - Use **Voice Chat** to have real conversations about your vocabulary
+   
    - Generate **Light Reading** passages that highlight your vocabulary words
    - Go to **Learn Mode** and practice with various question types
    - Take **Quizzes** to assess your retention and collect learned points
@@ -233,7 +217,7 @@ Perfect when you encounter specific words and want to learn them immediately:
    - Add discovered similar words to expand your lists
 
 3. **Practice & Master**: 
-   - Use **Voice Chat** to practice your specific vocabulary
+   
    - Generate **Light Reading** that uses your collected words
    - Go to **Learn Mode** and **Quiz** to systematically master your curated vocabulary
    - Return to **Word Detail Pages** anytime to review, find more similar words, or generate fresh examples
@@ -250,8 +234,8 @@ Both paths lead to the same comprehensive learning experience—you can even com
 ### ✅ Recently Implemented
 
 - **Multiple Question Types**: Now supporting 5 different exercise types - multiple choice, fill-in-the-blank, matching, true/false, and sentence completion (all configurable in settings)
-- **Vision Garden**: LLM-powered image description for natural vocabulary discovery
-- **Voice Chat**: Real-time voice conversations with LLM tutors using OpenAI's realtime API
+
+
 - **Word Detail Pages**: Deep dive into individual words with context exploration, examples, and similar words
 - **Audio Pronunciation System**: ElevenLabs integration with pronunciation and caching
 - **Multi-Language Support**: Learn any language using any language with LLM validation
@@ -264,7 +248,7 @@ Both paths lead to the same comprehensive learning experience—you can even com
 ### 🚀 Coming Next
 
 - **Advanced Progress Analytics**: Detailed statistics, mastery percentages, learning streaks, and daily goals
-- **Enhanced Voice Features**: More natural conversation flows, pronunciation scoring, and voice-based exercises
+
 - **Spaced Repetition**: Intelligent scheduling of word reviews based on forgetting curves
 - **List Sharing**: Allow users to share their custom vocabulary lists with others
 - **Mobile App**: Native iOS and Android applications for on-the-go learning
@@ -286,7 +270,7 @@ Both paths lead to the same comprehensive learning experience—you can even com
 - npm or yarn
 - MongoDB (local or cloud instance)
 - An OpenAI API key
-- A Pexels API key (optional - for Vision Garden stock photos)
+
 - An ElevenLabs API key (optional - for audio pronunciation features)
 
 ### Installation
@@ -346,7 +330,7 @@ PORT=3000
 NODE_ENV=development
 OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_BASE_URL=https://api.openai.com/v1
-PEXELS_API_KEY=your_pexels_api_key_here  # Optional for Vision Garden stock photos
+
 ELEVENLABS_API_KEY=your_elevenlabs_api_key_here  # Optional for audio features
 MONGODB_URL=mongodb://localhost:27017/wordpecker
 ```
@@ -399,7 +383,7 @@ cp .env.docker .env
 
 # Edit .env and add your API keys
 OPENAI_API_KEY=your_actual_openai_api_key_here
-PEXELS_API_KEY=your_actual_pexels_api_key_here  # Optional for Vision Garden stock photos
+
 ELEVENLABS_API_KEY=your_actual_elevenlabs_api_key_here  # Optional for audio features
 ```
 
@@ -511,7 +495,7 @@ This script will:
 - **Frontend**: React.js with TypeScript, Chakra UI components, Framer Motion animations
 - **Backend**: Express.js with TypeScript, agent-based LLM architecture
 - **Database**: MongoDB with Mongoose ODM
-- **LLM**: OpenAI API (GPT-4, DALL-E, Realtime Voice API) | @openai/agents SDK
+
 - **Audio**: ElevenLabs API for pronunciation, audio caching system
 - **Images**: LLM-generated (DALL-E) and stock photos (Pexels integration)
 - **Deployment**: Docker support for development with hot reload

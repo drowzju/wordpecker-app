@@ -45,19 +45,7 @@ export const Header = () => {
                 Templates
               </Button>
             </Link>
-            <Link to="/describe">
-              <Button 
-                variant="ghost"
-                leftIcon={<Icon as={FaCamera} color="#FA8C16" />}
-                _hover={{
-                  transform: 'translateY(-2px)',
-                  color: '#FA8C16'
-                }}
-                transition="all 0.2s"
-              >
-                Vision Garden
-              </Button>
-            </Link>
+            
             <Link to="/learn-new-words">
               <Button 
                 variant="ghost"
