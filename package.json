@@ -1,0 +1,28 @@
+{
+  "name": "mywordpecker",
+  "version": "1.0.0",
+  "description": "**Every word has a story.**",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "concurrently \"npm:dev --prefix backend\" \"npm:dev --prefix frontend\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drowzju/wordpecker-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/drowzju/wordpecker-app/issues"
+  },
+  "homepage": "https://github.com/drowzju/wordpecker-app#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  }
+}
