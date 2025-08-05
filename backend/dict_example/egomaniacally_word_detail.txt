@@ -1,0 +1,16 @@
+{
+    "id": "689228135fbbf27705465595",
+    "value": "egomaniacally",
+    "contexts": [
+        {
+            "listId": "688984260ca3978a5d79c43f",
+            "listName": "word power made easy",
+            "listContext": "",
+            "meaning": "指以自我为中心且极度自恋的方式行事。",
+            "learnedPoint": 0
+        }
+    ],
+    "examples": [],
+    "created_at": "2025-08-05T15:49:39.081Z",
+    "updated_at": "2025-08-05T15:49:39.090Z"
+}

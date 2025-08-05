@@ -460,27 +460,26 @@ export function WordDetailPage() {
           size="sm"
           flexShrink={0}
         />
-        <Heading 
-          as="h1" 
-          size={{ base: "xl", md: "2xl" }}
-          color="blue.400" 
-          wordBreak="break-word"
-          flex="1"
-          minW="0"
-        >
-          {wordDetail.value}
-        </Heading>
-        {wordDetail.dictionary?.[0]?.phonetics?.[0]?.audio && (
+        <HStack as="div" flex="1" minW="0" align="center" spacing={{ base: 2, md: 4 }}>
+          <Heading 
+            as="h1" 
+            size={{ base: "xl", md: "2xl" }}
+            color="blue.400" 
+            wordBreak="break-word"
+          >
+            {wordDetail.value}
+          </Heading>
           <PronunciationButton
             text={wordDetail.value}
-            audioUrl={wordDetail.dictionary[0].phonetics[0].audio}
+            audioUrl={wordDetail.dictionary?.[0]?.phonetics?.[0]?.audio}
             type="word"
             language="en" // TODO: Get from user preferences
             size="lg"
+            variant="ghost"
             colorScheme="blue"
             tooltipText={`Listen to pronunciation of "${wordDetail.value}"`}
           />
-        )}
+        </HStack>
       </Flex>
 
       {/* Context Selection */}
