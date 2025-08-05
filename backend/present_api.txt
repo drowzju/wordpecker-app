@@ -1,0 +1,194 @@
+No cached entry found. Fetching from API for: present
+Transformed to canonical entry: {
+  "word": "present",
+  "dictionary": [
+    {
+      "partOfSpeech": "noun",
+      "entryNumber": 1,
+      "phonetics": [
+        {
+          "text": "ˈpre-zᵊnt",
+          "audio": "https://media.merriam-webster.com/audio/prons/en/us/mp3/p/presen02.mp3",
+          "label": "noun"
+        }
+      ],
+      "definitions": [
+        {
+          "definition": "something presented : gift"
+        }
+      ]
+    },
+    {
+      "partOfSpeech": "verb",
+      "entryNumber": 1,
+      "phonetics": [
+        {
+          "text": "pri-ˈzent",
+          "audio": "https://media.merriam-webster.com/audio/prons/en/us/mp3/p/presen03.mp3",
+          "label": "verb"
+        }
+      ],
+      "definitions": [
+        {
+          "definition": "to make a gift to"
+        },
+        {
+          "definition": "to give or bestow formally"
+        },
+        {
+          "definition": "to bring (something, such as a play) before the public"
+        }
+      ]
+    },
+    {
+      "partOfSpeech": "adjective",
+      "entryNumber": 1,
+      "phonetics": [
+        {
+          "text": "ˈpre-zᵊnt",
+          "audio": "https://media.merriam-webster.com/audio/prons/en/us/mp3/p/presen04.mp3",
+          "label": "adjective"
+        }
+      ],
+      "definitions": [
+        {
+          "definition": "now existing or in progress"
+        },
+        {
+          "definition": "being in view or at hand"
+        },
+        {
+          "definition": "existing in something mentioned or under consideration"
+        }
+      ]
+    },
+    {
+      "partOfSpeech": "noun",
+      "entryNumber": 2,
+      "phonetics": [
+        {
+          "text": "ˈpre-zᵊnt",
+          "audio": "https://media.merriam-webster.com/audio/prons/en/us/mp3/p/presen04.mp3",
+          "label": "noun"
+        }
+      ],
+      "definitions": [
+        {
+          "definition": "the present time"
+        },
+        {
+          "definition": "the present tense of a language"
+        },
+        {
+          "definition": "a verb form in the present tense"
+        }
+      ]
+    },
+    {
+      "partOfSpeech": "noun",
+      "entryNumber": 3,
+      "phonetics": [
+        {
+          "text": "pri-ˈzent-",
+          "audio": "https://media.merriam-webster.com/audio/prons/en/us/mp3/p/presen10.mp3",
+          "label": "noun"
+        }
+      ],
+      "definitions": [
+        {
+          "definition": "a position in the manual of arms in which the rifle is held vertically in front of the body"
+        },
+        {
+          "definition": "a command to assume the position of present arms or to give a hand salute"
+        }
+      ]
+    },
+    {
+      "partOfSpeech": "adjective",
+      "entryNumber": 2,
+      "phonetics": [
+        {
+          "text": "ˈpre-zᵊnt-ˈdā",
+          "audio": "https://media.merriam-webster.com/audio/prons/en/us/mp3/p/presen15.mp3",
+          "label": "adjective"
+        }
+      ],
+      "definitions": [
+        {
+          "definition": "now existing or occurring"
+        }
+      ]
+    },
+    {
+      "partOfSpeech": "noun",
+      "entryNumber": 4,
+      "phonetics": [],
+      "definitions": [
+        {
+          "definition": "a participle that typically expresses present action in relation to the time expressed by the finite verb in its clause and that in English is formed with the suffix -ing and is used in the formation of the progressive tenses"
+        }
+      ]
+    },
+    {
+      "partOfSpeech": "adjective",
+      "entryNumber": 3,
+      "phonetics": [],
+      "definitions": [
+        {
+          "definition": "of, relating to, or constituting a verb tense that is traditionally formed in English with have and a past participle and that expresses an action or state begun in the past and completed at the time of speaking (as in \"I have finished\") or continuing in the present (as in \"We have lived here for several years\")"
+        }
+      ]
+    },
+    {
+      "partOfSpeech": "noun",
+      "entryNumber": 5,
+      "phonetics": [],
+      "definitions": [
+        {
+          "definition": "the tense of a verb that expresses action or state in the present time and is used of what occurs or is true at the time of speaking and of what is habitual or characteristic or is always or necessarily true, that is sometimes used to refer to action in the past, and that is sometimes used for future events"
+        }
+      ]
+    },
+    {
+      "partOfSpeech": "noun",
+      "entryNumber": 6,
+      "phonetics": [],
+      "definitions": [
+        {
+          "definition": "the sum of money which if invested now at a given rate of compound interest will accumulate exactly to a specified amount at a specified future date"
+        }
+      ]
+    }
+  ],
+  "derivatives": [
+    {
+      "word": "presentness",
+      "partOfSpeech": "noun",
+      "phonetics": []
+    },
+    {
+      "word": "present perfect",
+      "partOfSpeech": "noun",
+      "phonetics": []
+    }
+  ],
+  "stems": [
+    "at present",
+    "present",
+    "presents",
+    "presented",
+    "presenting",
+    "presentness",
+    "presentnesses",
+    "present arms",
+    "present-day",
+    "present participle",
+    "present participles",
+    "present perfect",
+    "present perfects",
+    "present tense",
+    "present tenses",
+    "present value",
+    "present values"
+  ]
+}

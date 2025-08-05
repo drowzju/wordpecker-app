@@ -17,6 +17,39 @@ export interface WordList {
   updated_at: string;
 }
 
+// 更新字典相关类型定义
+export interface Phonetic {
+  text?: string;
+  audio?: string;
+  label?: string;
+}
+
+export interface Definition {
+  definition: string;
+  example?: string;
+}
+
+export interface Meaning {
+  partOfSpeech: string;
+  definitions: Definition[];
+}
+
+export interface Derivative {
+  word: string;
+  partOfSpeech: string;
+}
+
+export interface DictionaryEntry {
+  word: string;
+  phonetics: Phonetic[];
+  meanings: Meaning[];
+  isDerivative?: boolean;
+  originalWord?: string;
+  derivatives?: Derivative[];
+  stems?: string[];
+}
+
+// 更新Word接口
 export interface Word {
   id: string;
   value: string;
@@ -24,7 +57,7 @@ export interface Word {
   learnedPoint: number;
   definition?: string;
   phonetic?: string;
-  dictionary?: any; // Using any for now, will refine later
+  dictionary?: DictionaryEntry[]; // 使用明确的类型而非any
   created_at: string;
   updated_at: string;
 }
@@ -37,10 +70,42 @@ export interface WordContext {
   learnedPoint: number;
 }
 
+export interface Phonetic {
+  text?: string;
+  audio?: string;
+}
+
+export interface Definition {
+  number?: string; // e.g., "1", "2a"
+  definition: string;
+  example?: string;
+}
+
+export interface Derivative {
+  word: string;
+  partOfSpeech: string;
+}
+
+export interface StructuredEntry {
+  partOfSpeech: string;
+  entryNumber: number;
+  phonetics: Phonetic[];
+  definitions: Definition[];
+  derivatives?: Derivative[];
+}
+
+export interface DictionaryDocument {
+  word: string;
+  dictionary: StructuredEntry[];
+  stems?: string[];
+}
+
+// This is the main data structure for the word detail page
 export interface WordDetail {
   id: string;
   value: string;
   contexts: WordContext[];
+  dictionary?: DictionaryDocument[]; // Use an array of documents
   examples?: SentenceExample[];
   created_at: string;
   updated_at: string;

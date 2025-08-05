@@ -36,7 +36,14 @@ import {
   FormControl,
   FormLabel,
   Textarea,
-  Input
+  Input,
+  Wrap,
+  Tag,
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  AccordionIcon,
 } from '@chakra-ui/react';
 import { FaArrowLeft, FaLightbulb, FaBookOpen, FaEye, FaEyeSlash, FaCamera, FaRobot, FaExchangeAlt, FaPlus, FaTrash } from 'react-icons/fa';
 import { apiService } from '../services/api';
@@ -566,73 +573,90 @@ export function WordDetailPage() {
 
       <Divider my={8} />
 
-      {/* Dictionary Information */}
-      {wordDetail.dictionary && (
+      {wordDetail.dictionary && wordDetail.dictionary.length > 0 && (
         <Box mb={6}>
-          <Heading as="h2" size={{ base: "md", md: "lg" }} color="blue.400" mb={3}>
-            📖 Dictionary Result
+          <Heading as="h2" size={{ base: "md", md: "lg" }} color="blue.400" mb={4}>
+            📖 Dictionary Results for "{wordDetail.value}"
           </Heading>
-          <VStack spacing={4} align="stretch">
-            {wordDetail.dictionary.map((entry, entryIndex) => (
-              <Card key={entryIndex} bg={cardBg} borderColor={borderColor} borderWidth="1px">
-                <CardBody py={4}>
-                  <VStack align="start" spacing={4}>
-                    {entry.phonetics && entry.phonetics.length > 0 && (
-                      <HStack spacing={4} wrap="wrap">
-                        {entry.phonetics.map((phonetic, phoneticIndex) => (
-                          <HStack key={phoneticIndex} align="center">
-                            {phonetic.audio && (
-                              <PronunciationButton
-                                text={entry.word}
-                                audioUrl={phonetic.audio}
-                                type="word"
-                                language="en"
-                                size="sm"
-                                colorScheme="blue"
-                                tooltipText={`Listen to ${phonetic.text}`}
-                              />
-                            )}
-                            <Text fontSize="md" color="gray.400">
-                              {phonetic.text}
-                            </Text>
-                          </HStack>
-                        ))}
+          <Accordion allowMultiple defaultIndex={[0]}>
+            {wordDetail.dictionary[0].dictionary.map((entry, entryIndex) => (
+              <AccordionItem key={entryIndex} bg={cardBg} borderRadius="lg" mb={4}>
+                <h2>
+                  <AccordionButton _expanded={{ bg: 'blue.900', color: 'white' }} borderRadius="lg">
+                    <Box as="span" flex='1' textAlign='left'>
+                      <HStack>
+                        <Badge colorScheme="purple" variant="solid" fontSize="md">{entry.partOfSpeech}</Badge>
+                        <Text fontWeight="bold">({entry.entryNumber} of {wordDetail.dictionary[0].dictionary.length})</Text>
                       </HStack>
-                    )}
-                    {entry.meanings.map((meaning, meaningIndex) => (
-                      <Box key={meaningIndex} w="full">
-                        <Badge 
-                          colorScheme="purple"
-                          variant="subtle"
-                          fontSize="sm"
-                          px={3}
-                          py={1}
-                          borderRadius="full"
-                          mb={2}
-                        >
-                          {meaning.partOfSpeech}
-                        </Badge>
-                        <VStack align="stretch" spacing={3} w="full">
-                          {meaning.definitions.map((def, defIndex) => (
-                            <Box key={defIndex}>
-                              <Text fontSize="md" fontWeight="medium" wordBreak="break-word" lineHeight="1.6">
-                                {def.definition}
-                              </Text>
-                              {def.example && (
-                                <Text fontSize="sm" color="gray.400" mt={1} fontStyle="italic">
-                                  e.g., {def.example}
-                                </Text>
-                              )}
-                            </Box>
+                    </Box>
+                    <AccordionIcon />
+                  </AccordionButton>
+                </h2>
+                <AccordionPanel pb={4}>
+                  <VStack align="stretch" spacing={4}>
+                    {/* Phonetics */}
+                    <HStack spacing={4} wrap="wrap">
+                      {entry.phonetics.map((phonetic, phoneticIndex) => (
+                        <HStack key={phoneticIndex} align="center">
+                          {phonetic.audio && (
+                            <PronunciationButton
+                              text={wordDetail.value}
+                              audioUrl={phonetic.audio}
+                              type="word"
+                              language="en"
+                              size="sm"
+                              colorScheme="blue"
+                            />
+                          )}
+                          <Text fontSize="lg" color="gray.300">{phonetic.text}</Text>
+                        </HStack>
+                      ))}
+                    </HStack>
+
+                    {/* Definitions */}
+                    <VStack align="stretch" spacing={3} pl={4} borderLeft="3px solid" borderColor="purple.300">
+                      {entry.definitions.map((def, defIndex) => (
+                        <Box key={defIndex} pb={2}>
+                          <Text fontSize="md" fontWeight="medium">
+                            <Badge colorScheme="gray" mr={2}>{def.number}</Badge>
+                            {def.definition}
+                          </Text>
+                        </Box>
+                      ))}
+                    </VStack>
+
+                    {/* Derivatives */}
+                    {(entry.derivatives?.length || 0) > 0 && (
+                      <Box w="full" pt={3}>
+                        <Heading as="h4" size="sm" color="gray.300" mb={2}>Derivatives</Heading>
+                        <Wrap>
+                          {entry.derivatives?.map((d, i) => (
+                            <Tag key={i} colorScheme="green" variant="solid">{d.word}</Tag>
                           ))}
-                        </VStack>
+                        </Wrap>
                       </Box>
-                    ))}
+                    )}
                   </VStack>
-                </CardBody>
-              </Card>
+                </AccordionPanel>
+              </AccordionItem>
             ))}
-          </VStack>
+          </Accordion>
+
+          {/* Stems Card */}
+          {(wordDetail.dictionary[0].stems?.length || 0) > 0 && (
+            <Card bg={cardBg} borderColor={borderColor} borderWidth="1px" shadow="sm" mt={6}>
+              <CardBody py={4} px={6}>
+                <VStack align="start" spacing={2}>
+                  <Heading as="h4" size="sm" color="gray.300">Related Word Stems</Heading>
+                  <Wrap>
+                    {wordDetail.dictionary[0].stems?.map((stem, i) => (
+                      <Tag key={i} colorScheme="cyan" variant="solid">{stem}</Tag>
+                    ))}
+                  </Wrap>
+                </VStack>
+              </CardBody>
+            </Card>
+          )}
         </Box>
       )}
 

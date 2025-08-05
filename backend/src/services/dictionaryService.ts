@@ -1,219 +1,298 @@
-import puppeteer from 'puppeteer';
 import axios from 'axios';
 import { Dictionary } from '../api/dictionary/model';
 import { environment } from '../config/environment';
-import fs from 'fs';
-import path from 'path';
-import crypto from 'crypto';
-import { pipeline } from 'stream/promises';
-import { wrapper } from 'axios-cookiejar-support';
 
-// Internal data structure
+// --- Main Data Structures ---
+
 export interface Phonetic {
   text?: string;
   audio?: string;
 }
 
 export interface Definition {
+  number?: string; // e.g., "1", "2a", "b(1)"
   definition: string;
   example?: string;
 }
 
-export interface Meaning {
-  partOfSpeech: string;
-  definitions: Definition[];
-}
-
-export interface DictionaryEntry {
+export interface Derivative {
   word: string;
-  phonetics: Phonetic[];
-  meanings: Meaning[];
+  partOfSpeech: string;
 }
 
-// Merriam-Webster API response interfaces
+// A structured entry, like "present (noun, 1 of 4)"
+export interface StructuredEntry {
+  partOfSpeech: string;
+  entryNumber: number;
+  phonetics: Phonetic[];
+  definitions: Definition[];
+  derivatives?: Derivative[];
+}
+
+// The canonical document stored in MongoDB
+export interface DictionaryDocument {
+  word: string;
+  dictionary: StructuredEntry[];
+  stems?: string[];
+}
+
+// --- Merriam-Webster Specific Interfaces ---
+
+interface MerriamWebsterPronunciation {
+  mw: string;
+  sound?: {
+    audio: string;
+  };
+}
+
+interface MerriamWebsterUro {
+  ure: string;
+  fl: string;
+  prs?: MerriamWebsterPronunciation[];
+}
+
+// A simplified interface focusing on the parts we parse.
 interface MerriamWebsterEntry {
   meta: {
     id: string;
+    stems?: string[];
   };
+  hom?: number;
   hwi: {
     hw: string;
-    prs?: {
-      mw: string;
-      sound?: {
-        audio: string;
-      };
-    }[];
+    prs?: MerriamWebsterPronunciation[];
   };
-  fl: string; // functional label (part of speech)
+  fl: string; // part of speech
+  def?: {
+    sseq: any[];
+  }[];
+  uros?: MerriamWebsterUro[];
   shortdef: string[];
 }
 
-// --- Data Transformation ---
+// --- Utility Functions ---
 
-// --- Audio Caching for Dictionary Service ---
-async function cacheAudioFromUrl(audioUrl: string): Promise<string | null> {
-  // No longer caching, just return the URL
-  return audioUrl;
+/**
+ * Builds the full audio URL for a Merriam-Webster audio file.
+ */
+function buildAudioUrl(audioFile: string): string {
+  if (!audioFile) return '';
+  const subdirectory = audioFile.match(/^(bix|gg|_|[.,;!?]|\d)/)?.[0] || audioFile.charAt(0).toLowerCase();
+  const directoryMap: { [key: string]: string } = {
+    'bix': 'bix',
+    'gg': 'gg',
+    '_': 'punct',
+    '.': 'punct',
+    ',': 'punct',
+    ';': 'punct',
+    '!': 'punct',
+    '?': 'punct',
+  };
+  const finalSubdirectory = directoryMap[subdirectory] || (/\d/.test(subdirectory) ? 'number' : subdirectory);
+  return `https://media.merriam-webster.com/audio/prons/en/us/mp3/${finalSubdirectory}/${audioFile}.mp3`;
 }
 
-// --- Data Transformation ---
+/**
+ * Processes a list of pronunciations from the API into our Phonetic format.
+ */
+function processPhonetics(prs: MerriamWebsterPronunciation[] | undefined): Phonetic[] {
+  if (!prs) return [];
+  return prs.map(p => ({
+    text: p.mw,
+    audio: p.sound?.audio ? buildAudioUrl(p.sound.audio) : undefined,
+  }));
+}
 
-const transformMerriamWebsterResponse = async (data: MerriamWebsterEntry[], word: string): Promise<DictionaryEntry[] | null> => {
-  if (!data || data.length === 0 || typeof data[0] !== 'object' || !data[0].hwi) {
-    console.log(`No valid entries found for "${word}" from Merriam-Webster.`);
-    return null;
-  }
+/**
+ * Cleans definition text by removing or replacing Merriam-Webster's formatting tags.
+ * @param text The raw text from the API.
+ * @returns A clean, readable string.
+ */
+function cleanDefinitionText(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/{bc}/g, '') // Remove bold colon
+    .replace(/{\/it}/g, '') // Remove italic tags
+    .replace(/{it}/g, '')
+    .replace(/{a_link|([^|}]+)|[^}]*}/g, '$1') // Extract text from links
+    .replace(/{sx|([^|}]+)|[^}]*}/g, '($1)') // Extract text from synonym links
+    .trim();
+}
 
-  const entry = data.find(e => e.meta.id.split(':')[0].toLowerCase() === word.toLowerCase());
-  if (!entry) {
-    console.log(`No exact match found for "${word}" from Merriam-Webster.`);
-    return null;
-  }
-  
-  const meanings: Meaning[] = data
-    .filter(e => typeof e === 'object' && e.fl) // Filter out non-entry items
-    .map(e => ({
-      partOfSpeech: e.fl,
-      definitions: e.shortdef.map(def => ({ definition: def })),
-    }));
+/**
+ * Recursively parses the 'sseq' (sense sequence) to extract structured definitions.
+ * @param senseSequence The sseq array from the API.
+ * @returns An array of structured Definition objects.
+ */
+function parseSenses(senseSequence: any[]): Definition[] {
+  let definitions: Definition[] = [];
 
-  const phonetics: Phonetic[] = [];
-  if (entry.hwi?.prs?.length) {
-    for (const pr of entry.hwi.prs) {
-      const phonetic: Phonetic = { text: pr.mw };
-      if (pr.sound?.audio) {
-        const audioFile = pr.sound.audio;
-        let subdirectory;
-        if (audioFile.startsWith('bix')) {
-          subdirectory = 'bix';
-        } else if (audioFile.startsWith('gg')) {
-          subdirectory = 'gg';
-        } else if (audioFile.startsWith('_') || audioFile.startsWith('-')) {
-          subdirectory = 'punct';
-        } else if (/^[0-9]/.test(audioFile.charAt(0))) {
-          subdirectory = 'number';
-        } else {
-          subdirectory = audioFile.charAt(0);
+  senseSequence.forEach(item => {
+    // It's a sense block
+    if (Array.isArray(item) && item[0] === 'sense') {
+      const sense = item[1];
+      const definitionParts: string[] = [];
+      
+      sense.dt?.forEach((dt: any[]) => {
+        if (dt[0] === 'text') {
+          definitionParts.push(cleanDefinitionText(dt[1]));
+        } else if (dt[0] === 'vis') {
+          const examples = dt[1].map((v: any) => cleanDefinitionText(v.t)).join(', ');
+          definitionParts.push(`e.g., ${examples}`);
         }
-        
-        const cachedAudioUrl = `https://media.merriam-webster.com/audio/prons/en/us/mp3/${subdirectory}/${audioFile}.mp3`;
-        if (cachedAudioUrl) {
-          phonetic.audio = cachedAudioUrl;
-        }
+      });
+
+      const fullDefinition = definitionParts.join(' ').trim();
+      if (fullDefinition) {
+        definitions.push({
+          number: sense.sn,
+          definition: fullDefinition,
+        });
       }
-      phonetics.push(phonetic);
     }
-  }
-
-  return [{
-    word: entry.hwi.hw.replace(/\*/g, ''),
-    phonetics,
-    meanings,
-  }];
-};
-
-const transformMongoResponse = (doc: any): DictionaryEntry[] => {
-    const meanings: Meaning[] = [];
-    if (doc.entries && typeof doc.entries === 'object') {
-        for (const partOfSpeech in doc.entries) {
-            if (Object.prototype.hasOwnProperty.call(doc.entries, partOfSpeech)) {
-                const definitions = doc.entries[partOfSpeech].map((def: string) => ({ definition: def }));
-                meanings.push({ partOfSpeech, definitions });
-            }
-        }
+    // It's a paragraph sequence, recurse into it
+    else if (Array.isArray(item) && item[0] === 'pseq') {
+      definitions = definitions.concat(parseSenses(item[1]));
     }
-    return [{
-        word: doc.word,
-        phonetics: doc.phonetics || [],
-        meanings,
-    }];
-};
+  });
+
+  return definitions;
+}
 
 
-// --- Database and API Logic ---
-
-async function fetchFromMerriamWebster(word: string): Promise<DictionaryEntry[] | null> {
-  if (!environment.merriamWebsterApiKey) {
-    console.log('Merriam-Webster API key not configured.');
+/**
+ * Transforms the raw Merriam-Webster API response into a structured DictionaryDocument.
+ * This new version accurately groups entries by homograph, parses detailed definitions,
+ * and correctly associates phonetics and derivatives.
+ *
+ * @param apiResponse The raw data array from the Merriam-Webster API.
+ * @param query The original word that was searched for.
+ * @returns A promise that resolves to a structured DictionaryDocument, or null.
+ */
+const transformMerriamWebsterResponse = async (apiResponse: MerriamWebsterEntry[], query: string): Promise<DictionaryDocument | null> => {
+  if (!apiResponse || apiResponse.length === 0 || typeof apiResponse[0] !== 'object') {
     return null;
   }
-  
-  const apiKey = environment.merriamWebsterApiKey;
-  const url = `https://www.dictionaryapi.com/api/v3/references/collegiate/json/${word.toLowerCase()}?key=${apiKey}`;
-  
-  console.log('Fetching definition from Merriam-Webster for:', word);
+
+  // 1. Filter for core entries related to the query word.
+  const coreEntries = apiResponse.filter(entry =>
+    entry.meta?.id &&
+    (entry.meta.id.toLowerCase() === query.toLowerCase() || new RegExp(`^${query.toLowerCase()}:\\d+$`).test(entry.meta.id.toLowerCase()))
+  );
+
+  if (coreEntries.length === 0) return null;
+
+  // 2. Group core entries by homograph number.
+  const groupedByHomograph = coreEntries.reduce((acc, entry) => {
+    const homographNumber = entry.hom || 0;
+    if (!acc[homographNumber]) {
+      acc[homographNumber] = [];
+    }
+    acc[homographNumber].push(entry);
+    return acc;
+  }, {} as Record<number, MerriamWebsterEntry[]>);
+
+  // 3. Process each homograph group into a StructuredEntry.
+  const dictionaryEntries: StructuredEntry[] = Object.values(groupedByHomograph).map((homographGroup, index) => {
+    const mainEntry = homographGroup[0];
+    const partOfSpeech = mainEntry.fl;
+
+    const phonetics = processPhonetics(mainEntry.hwi?.prs);
+    
+    const definitions = mainEntry.def?.[0]?.sseq ? parseSenses(mainEntry.def[0].sseq) : [];
+
+    const derivatives = mainEntry.uros?.map((uro: any) => ({
+      word: uro.ure.replace(/\*/g, ''),
+      partOfSpeech: uro.fl,
+    })) || [];
+
+    return {
+      partOfSpeech,
+      entryNumber: index + 1,
+      phonetics,
+      definitions,
+      derivatives,
+    };
+  });
+
+  // 4. Consolidate all unique stems from the entire API response.
+  const stems = Array.from(new Set(apiResponse.flatMap(e => e.meta?.stems || [])));
+
+  return {
+    word: query,
+    dictionary: dictionaryEntries,
+    stems,
+  };
+};
+
+/**
+ * Saves a single, canonical dictionary entry to the database.
+ * @param data The DictionaryDocument object to save.
+ */
+async function saveToDictionary(data: DictionaryDocument): Promise<void> {
+  if (!data) return;
+
+  const filter = { word: data.word.toLowerCase() };
+  const update = { $set: data };
+  const options = { upsert: true };
 
   try {
+    await Dictionary.findOneAndUpdate(filter, update, options);
+    console.log(`Successfully upserted canonical entry for "${data.word}" in the dictionary.`);
+  } catch (error) {
+    console.error(`Error upserting "${data.word}" in the dictionary:`, error);
+  }
+}
+
+/**
+ * Fetches a word's definition, starting with a cache check and falling back to the API.
+ * It handles root words and derivatives, always aiming to return a single canonical entry.
+ *
+ * @param word The word to look up (can be a root or a derivative).
+ * @returns A promise that resolves to a single DictionaryDocument or null.
+ */
+export async function getDictionaryDefinition(word: string): Promise<DictionaryDocument | null> {
+  const lowercaseWord = word.toLowerCase();
+
+  try {
+    const cachedEntry = await Dictionary.findOne({ stems: lowercaseWord }).lean();
+    if (cachedEntry) {
+      console.log(`Found cached entry for "${word}" via its root "${cachedEntry.word}".`);
+      return cachedEntry as unknown as DictionaryDocument;
+    }
+
+    console.log('No cached entry found. Fetching from API for:', word);
+    const apiKey = environment.merriamWebsterApiKey;
+    if (!apiKey) {
+      console.log('Merriam-Webster API key not configured.');
+      return null;
+    }
+    const url = `https://www.dictionaryapi.com/api/v3/references/collegiate/json/${lowercaseWord}?key=${apiKey}`;
+    
     const response = await axios.get<MerriamWebsterEntry[]>(url, { proxy: false });
+
+    console.log('Raw response from Merriam-Webster:', JSON.stringify(response.data, null, 2));
+
     if (response.status !== 200 || !response.data) {
       console.error('Invalid response from Merriam-Webster API:', response.status);
       return null;
     }
-    console.log('Raw response from Merriam-Webster:', JSON.stringify(response.data, null, 2));
-    const transformedData = await transformMerriamWebsterResponse(response.data, word);
-    console.log('Transformed dictionary data:', JSON.stringify(transformedData, null, 2));
-    return transformedData;
+    
+    const transformedData = await transformMerriamWebsterResponse(response.data, lowercaseWord);
+    console.log('Transformed to canonical entry:', JSON.stringify(transformedData, null, 2));
+
+    if (transformedData) {
+      await saveToDictionary(transformedData);
+      return transformedData;
+    }
+
+    return null;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error('Error fetching from Merriam-Webster API:', error.response?.status, error.response?.data);
+      console.error(`Error fetching from Merriam-Webster for "${word}":`, error.response?.status, error.response?.data);
     } else {
-      console.error('An unexpected error occurred:', error);
+      console.error(`An unexpected error occurred in getDictionaryDefinition for "${word}":`, error);
     }
-    return null;
-  }
-}
-
-async function saveToDictionary(data: DictionaryEntry[]): Promise<void> {
-    if (!data || data.length === 0) return;
-
-    const entryToSave = data[0];
-    const entries: { [key: string]: string[] } = {};
-    entryToSave.meanings.forEach(meaning => {
-        entries[meaning.partOfSpeech] = meaning.definitions.map(def => def.definition);
-    });
-
-    const filter = { word: entryToSave.word.toLowerCase() };
-    const update = {
-        $set: {
-            entries,
-            phonetics: entryToSave.phonetics,
-            source: 'Merriam-Webster',
-        }
-    };
-    const options = { upsert: true, new: true };
-
-    try {
-        await Dictionary.findOneAndUpdate(filter, update, options);
-        console.log(`Successfully upserted "${entryToSave.word}" in the dictionary.`);
-    } catch (error) {
-        console.error(`Error upserting "${entryToSave.word}" in the dictionary:`, error);
-    }
-}
-
-export async function getDictionaryDefinition(word: string): Promise<DictionaryEntry[] | null> {
-  const lowercaseWord = word.toLowerCase();
-  
-  try {
-    // 1. Check local DB for a cached Merriam-Webster entry
-    const entry = await Dictionary.findOne({ word: lowercaseWord, source: 'Merriam-Webster' }).lean();
-    if (entry) {
-      console.log('Found cached Merriam-Webster entry in DB:', word);
-      return transformMongoResponse(entry);
-    }
-
-    // 2. If not in cache, fetch from Merriam-Webster
-    console.log('No cached M-W entry found. Fetching from API for:', word);
-    const merriamWebsterData = await fetchFromMerriamWebster(word);
-
-    if (merriamWebsterData) {
-      // 3. Persist to local DB and return
-      await saveToDictionary(merriamWebsterData);
-      return merriamWebsterData;
-    }
-
-    return null;
-  } catch (error) {
-    console.error(`An error occurred in getDictionaryDefinition for "${word}":`, error);
     return null;
   }
 }

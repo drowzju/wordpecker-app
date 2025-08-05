@@ -50,7 +50,7 @@ export class WordAgentService {
   
     const dictionaryData = await getDictionaryDefinition(word);
     if (dictionaryData) {
-      definitionResult.dictionary = dictionaryData;
+      definitionResult.dictionary = [dictionaryData];
     }
   
     return definitionResult;

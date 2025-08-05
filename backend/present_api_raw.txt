@@ -1,0 +1,1042 @@
+Raw response from Merriam-Webster: [
+  {
+    "meta": {
+      "id": "present:1",
+      "uuid": "fd8e8b4b-3109-4555-974f-7bd03af4ff1b",
+      "sort": "167189000",
+      "src": "collegiate",
+      "section": "alpha",
+      "stems": [
+        "at present",
+        "present",
+        "presents"
+      ],
+      "offensive": false
+    },
+    "hom": 1,
+    "hwi": {
+      "hw": "pres*ent",
+      "prs": [
+        {
+          "mw": "ˈpre-zᵊnt",
+          "sound": {
+            "audio": "presen02",
+            "ref": "c",
+            "stat": "1"
+          }
+        }
+      ]
+    },
+    "fl": "noun",
+    "def": [
+      {
+        "sseq": [
+          [
+            [
+              "sense",
+              {
+                "dt": [
+                  [
+                    "text",
+                    "{bc}something {a_link|presented} {bc}{sx|gift||}"
+                  ]
+                ]
+              }
+            ]
+          ]
+        ]
+      }
+    ],
+    "et": [
+      [
+        "text",
+        "Middle English, from Anglo-French, from {it}presenter{/it}"
+      ]
+    ],
+    "date": "13th century",
+    "shortdef": [
+      "something presented : gift"
+    ]
+  },
+  {
+    "meta": {
+      "id": "present:2",
+      "uuid": "eb35d7fb-d3e7-41c5-9db2-de3fbabb1ebb",
+      "sort": "167190000",
+      "src": "collegiate",
+      "section": "alpha",
+      "stems": [
+        "present",
+        "presented",
+        "presenting",
+        "presents"
+      ],
+      "offensive": false
+    },
+    "hom": 2,
+    "hwi": {
+      "hw": "pre*sent",
+      "prs": [
+        {
+          "mw": "pri-ˈzent",
+          "sound": {
+            "audio": "presen03",
+            "ref": "c",
+            "stat": "1"
+          }
+        }
+      ]
+    },
+    "fl": "verb",
+    "ins": [
+      {
+        "if": "pre*sent*ed"
+      },
+      {
+        "if": "pre*sent*ing"
+      },
+      {
+        "if": "pre*sents"
+      }
+    ],
+    "def": [
+      {
+        "vd": "transitive verb",
+        "sseq": [
+          [
+            [
+              "sense",
+              {
+                "sn": "1",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}to make a gift to"
+                  ]
+                ]
+              }
+            ]
+          ],
+          [
+            [
+              "sense",
+              {
+                "sn": "2",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}to give or bestow formally"
+                  ]
+                ]
+              }
+            ]
+          ],
+          [
+            [
+              "sense",
+              {
+                "sn": "3 a",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}to bring (something, such as a play) before the public"
+                  ]
+                ]
+              }
+            ],
+            [
+              "pseq",
+              [
+                [
+                  "sense",
+                  {
+                    "sn": "b (1)",
+                    "dt": [
+                      [
+                        "text",
+                        "{bc}to bring or introduce into the {a_link|presence} of someone especially of superior rank or status"
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  "sense",
+                  {
+                    "sn": "(2)",
+                    "dt": [
+                      [
+                        "text",
+                        "{bc}to introduce socially"
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            ]
+          ],
+          [
+            [
+              "sense",
+              {
+                "sn": "4 a",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}to offer to view {bc}{sx|show||}"
+                  ]
+                ]
+              }
+            ],
+            [
+              "sense",
+              {
+                "sn": "b",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}to bring to one's attention "
+                  ],
+                  [
+                    "vis",
+                    [
+                      {
+                        "t": "This {wi}presents{/wi} a problem."
+                      }
+                    ]
+                  ]
+                ]
+              }
+            ]
+          ],
+          [
+            [
+              "sense",
+              {
+                "sn": "5 a",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}to lay (something, such as a charge) before a court as an object of inquiry"
+                  ]
+                ]
+              }
+            ],
+            [
+              "sense",
+              {
+                "sn": "b",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}to bring a formal public charge, indictment, or {a_link|presentment} against"
+                  ]
+                ]
+              }
+            ]
+          ],
+          [
+            [
+              "sense",
+              {
+                "sn": "6",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}to nominate to a benefice"
+                  ]
+                ]
+              }
+            ]
+          ],
+          [
+            [
+              "sense",
+              {
+                "sn": "7",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}to aim, point, or direct (something, such as a weapon) so as to face something or in a particular direction"
+                  ]
+                ]
+              }
+            ]
+          ],
+          [
+            [
+              "sense",
+              {
+                "sn": "8",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}to act the part of {bc}{sx|perform||}"
+                  ]
+                ]
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "vd": "intransitive verb",
+        "sseq": [
+          [
+            [
+              "sense",
+              {
+                "sn": "1",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}to make a {a_link|presentation}"
+                  ]
+                ]
+              }
+            ]
+          ],
+          [
+            [
+              "sense",
+              {
+                "sn": "2",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}to become manifest"
+                  ]
+                ]
+              }
+            ]
+          ],
+          [
+            [
+              "sense",
+              {
+                "sn": "3",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}to come forward as a patient"
+                  ]
+                ]
+              }
+            ]
+          ],
+          [
+            [
+              "sense",
+              {
+                "sn": "4",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}to present a weapon"
+                  ]
+                ]
+              }
+            ]
+          ]
+        ]
+      }
+    ],
+    "syns": [
+      {
+        "pl": "synonyms",
+        "pt": [
+          [
+            "text",
+            "{sc}give{/sc} {sc}present{/sc} {sc}donate{/sc} {sc}bestow{/sc} {sc}confer{/sc} {sc}afford{/sc} mean to convey to another as a possession. {sc}give{/sc}, the general term, is applicable to any passing over of anything by any means. "
+          ],
+          [
+            "vis",
+            [
+              {
+                "t": "{it}give{/it} alms"
+              },
+              {
+                "t": "{it}gave{/it} her a ride on a pony"
+              },
+              {
+                "t": "{it}give{/it} my love to your mother"
+              }
+            ]
+          ],
+          [
+            "text",
+            " {sc}present{/sc} carries a note of formality and ceremony. "
+          ],
+          [
+            "vis",
+            [
+              {
+                "t": "{it}present{/it} an award"
+              }
+            ]
+          ],
+          [
+            "text",
+            " {sc}donate{/sc} is likely to imply a publicized giving (as to charity). "
+          ],
+          [
+            "vis",
+            [
+              {
+                "t": "{it}donate{/it} a piano to the orphanage"
+              }
+            ]
+          ],
+          [
+            "text",
+            " {sc}bestow{/sc} implies the conveying of something as a gift and may suggest condescension on the part of the giver. "
+          ],
+          [
+            "vis",
+            [
+              {
+                "t": "{it}bestow{/it} unwanted advice"
+              }
+            ]
+          ],
+          [
+            "text",
+            " {sc}confer{/sc} implies a gracious giving (as of a favor or honor). "
+          ],
+          [
+            "vis",
+            [
+              {
+                "t": "{it}confer{/it} an honorary degree"
+              }
+            ]
+          ],
+          [
+            "text",
+            " {sc}afford{/sc} implies a giving or bestowing usually as a natural or legitimate consequence of the character of the giver. "
+          ],
+          [
+            "vis",
+            [
+              {
+                "t": "the trees {it}afford{/it} shade"
+              },
+              {
+                "t": "a development that {it}affords{/it} us some hope"
+              }
+            ]
+          ]
+        ]
+      }
+    ],
+    "et": [
+      [
+        "text",
+        "Middle English, from Anglo-French {it}presenter{/it}, from Latin {it}praesentare{/it}, from {it}praesent-, praesens{/it}, adjective"
+      ]
+    ],
+    "date": "14th century{ds|t|3|b|1}",
+    "shortdef": [
+      "to make a gift to",
+      "to give or bestow formally",
+      "to bring (something, such as a play) before the public"
+    ]
+  },
+  {
+    "meta": {
+      "id": "present:3",
+      "uuid": "f4c0ed02-04d7-4470-97c3-0e02e54b89a8",
+      "sort": "167191000",
+      "src": "collegiate",
+      "section": "alpha",
+      "stems": [
+        "present",
+        "presentness",
+        "presentnesses"
+      ],
+      "offensive": false
+    },
+    "hom": 3,
+    "hwi": {
+      "hw": "pres*ent",
+      "prs": [
+        {
+          "mw": "ˈpre-zᵊnt",
+          "sound": {
+            "audio": "presen04",
+            "ref": "c",
+            "stat": "1"
+          }
+        }
+      ]
+    },
+    "fl": "adjective",
+    "def": [
+      {
+        "sseq": [
+          [
+            [
+              "sense",
+              {
+                "sn": "1",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}now existing or in progress"
+                  ]
+                ]
+              }
+            ]
+          ],
+          [
+            [
+              "sense",
+              {
+                "sn": "2 a",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}being in view or at hand"
+                  ]
+                ]
+              }
+            ],
+            [
+              "sense",
+              {
+                "sn": "b",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}existing in something mentioned or under consideration"
+                  ]
+                ]
+              }
+            ]
+          ],
+          [
+            [
+              "sense",
+              {
+                "sn": "3",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}constituting the one actually involved, at hand, or being considered"
+                  ]
+                ]
+              }
+            ]
+          ],
+          [
+            [
+              "sense",
+              {
+                "sn": "4",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}of, relating to, or constituting a verb tense that is expressive of present time or the time of speaking"
+                  ]
+                ]
+              }
+            ]
+          ],
+          [
+            [
+              "sense",
+              {
+                "sn": "5",
+                "sls": [
+                  "archaic"
+                ],
+                "dt": [
+                  [
+                    "text",
+                    "{bc}{sx|instant||}, {sx|immediate||}"
+                  ]
+                ]
+              }
+            ]
+          ],
+          [
+            [
+              "sense",
+              {
+                "sn": "6",
+                "sls": [
+                  "obsolete"
+                ],
+                "dt": [
+                  [
+                    "text",
+                    "{bc}{sx|attentive||}"
+                  ]
+                ]
+              }
+            ]
+          ]
+        ]
+      }
+    ],
+    "uros": [
+      {
+        "ure": "pres*ent*ness",
+        "fl": "noun"
+      }
+    ],
+    "et": [
+      [
+        "text",
+        "Middle English, from Anglo-French, from Latin {it}praesent-, praesens{/it}, from present participle of {it}praeesse{/it} to be before one, from {it}prae-{/it} pre- + {it}esse{/it} to be {ma}{mat|is|}{/ma}"
+      ]
+    ],
+    "date": "14th century{ds||1||}",
+    "shortdef": [
+      "now existing or in progress",
+      "being in view or at hand",
+      "existing in something mentioned or under consideration"
+    ]
+  },
+  {
+    "meta": {
+      "id": "present:4",
+      "uuid": "812595f2-6881-400e-aa73-a2318ddf20d6",
+      "sort": "167192000",
+      "src": "collegiate",
+      "section": "alpha",
+      "stems": [
+        "at present",
+        "present",
+        "presents"
+      ],
+      "offensive": false
+    },
+    "hom": 4,
+    "hwi": {
+      "hw": "pres*ent",
+      "prs": [
+        {
+          "mw": "ˈpre-zᵊnt",
+          "sound": {
+            "audio": "presen04",
+            "ref": "c",
+            "stat": "1"
+          }
+        }
+      ]
+    },
+    "fl": "noun",
+    "def": [
+      {
+        "sseq": [
+          [
+            [
+              "sense",
+              {
+                "sn": "1",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}the present time"
+                  ]
+                ]
+              }
+            ]
+          ],
+          [
+            [
+              "sense",
+              {
+                "sn": "2 a",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}the present tense of a language"
+                  ]
+                ]
+              }
+            ],
+            [
+              "sense",
+              {
+                "sn": "b",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}a verb form in the present tense"
+                  ]
+                ]
+              }
+            ]
+          ],
+          [
+            [
+              "sense",
+              {
+                "sn": "3 a",
+                "ins": [
+                  {
+                    "if": "pres*ents",
+                    "spl": "plural"
+                  }
+                ],
+                "dt": [
+                  [
+                    "text",
+                    "{bc}the present words or statements"
+                  ]
+                ],
+                "sdsense": {
+                  "sd": "specifically",
+                  "dt": [
+                    [
+                      "text",
+                      "{bc}the legal instrument or other writing in which these words are used"
+                    ]
+                  ]
+                }
+              }
+            ],
+            [
+              "sense",
+              {
+                "sn": "b",
+                "sls": [
+                  "obsolete"
+                ],
+                "dt": [
+                  [
+                    "text",
+                    "{bc}present occasion or affair"
+                  ]
+                ]
+              }
+            ]
+          ]
+        ]
+      }
+    ],
+    "dros": [
+      {
+        "drp": "at present",
+        "def": [
+          {
+            "sseq": [
+              [
+                [
+                  "sense",
+                  {
+                    "dt": [
+                      [
+                        "text",
+                        "{bc}at or during this time {bc}{sx|now||}"
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            ]
+          }
+        ]
+      }
+    ],
+    "date": "14th century{ds||3|a|}",
+    "shortdef": [
+      "the present time",
+      "the present tense of a language",
+      "a verb form in the present tense"
+    ]
+  },
+  {
+    "meta": {
+      "id": "present arms",
+      "uuid": "1a6fb785-a4e1-4f04-8e9e-9ab62b38a92a",
+      "sort": "167194000",
+      "src": "collegiate",
+      "section": "alpha",
+      "stems": [
+        "present arms"
+      ],
+      "offensive": false
+    },
+    "hwi": {
+      "hw": "pre*sent arms",
+      "prs": [
+        {
+          "mw": "pri-ˈzent-",
+          "sound": {
+            "audio": "presen10",
+            "ref": "c",
+            "stat": "1"
+          }
+        }
+      ]
+    },
+    "fl": "noun",
+    "def": [
+      {
+        "sseq": [
+          [
+            [
+              "sense",
+              {
+                "sn": "1",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}a position in the manual of arms in which the rifle is held vertically in front of the body"
+                  ]
+                ]
+              }
+            ]
+          ],
+          [
+            [
+              "sense",
+              {
+                "sn": "2",
+                "dt": [
+                  [
+                    "text",
+                    "{bc}a command to assume the position of present arms or to give a hand salute"
+                  ]
+                ]
+              }
+            ]
+          ]
+        ]
+      }
+    ],
+    "et": [
+      [
+        "text",
+        "from the command {it}present arms!{/it}"
+      ]
+    ],
+    "date": "circa 1884{ds||1||}",
+    "shortdef": [
+      "a position in the manual of arms in which the rifle is held vertically in front of the body",
+      "a command to assume the position of present arms or to give a hand salute"
+    ]
+  },
+  {
+    "meta": {
+      "id": "present-day",
+      "uuid": "4c394a5c-d515-424a-b3d8-9016d60d6f6a",
+      "sort": "167197000",
+      "src": "collegiate",
+      "section": "alpha",
+      "stems": [
+        "present-day"
+      ],
+      "offensive": false
+    },
+    "hwi": {
+      "hw": "pres*ent-day",
+      "prs": [
+        {
+          "mw": "ˈpre-zᵊnt-ˈdā",
+          "sound": {
+            "audio": "presen15",
+            "ref": "c",
+            "stat": "1"
+          }
+        }
+      ]
+    },
+    "fl": "adjective",
+    "def": [
+      {
+        "sseq": [
+          [
+            [
+              "sense",
+              {
+                "dt": [
+                  [
+                    "text",
+                    "{bc}now existing or occurring"
+                  ]
+                ]
+              }
+            ]
+          ]
+        ]
+      }
+    ],
+    "date": "1887",
+    "shortdef": [
+      "now existing or occurring"
+    ]
+  },
+  {
+    "meta": {
+      "id": "present participle",
+      "uuid": "c642ea20-2f13-4209-b3fa-16df55abc96c",
+      "sort": "167206000",
+      "src": "collegiate",
+      "section": "alpha",
+      "stems": [
+        "present participle",
+        "present participles"
+      ],
+      "offensive": false
+    },
+    "hwi": {
+      "hw": "present participle"
+    },
+    "fl": "noun",
+    "def": [
+      {
+        "sseq": [
+          [
+            [
+              "sense",
+              {
+                "dt": [
+                  [
+                    "text",
+                    "{bc}a participle that typically expresses present action in relation to the time expressed by the finite verb in its clause and that in English is formed with the suffix {it}-ing{/it} and is used in the formation of the progressive tenses"
+                  ]
+                ]
+              }
+            ]
+          ]
+        ]
+      }
+    ],
+    "date": "1864",
+    "shortdef": [
+      "a participle that typically expresses present action in relation to the time expressed by the finite verb in its clause and that in English is formed with the suffix -ing and is used in the formation of the progressive tenses"
+    ]
+  },
+  {
+    "meta": {
+      "id": "present perfect",
+      "uuid": "18ea4039-fb84-4d38-adac-aee43d341efb",
+      "sort": "167207000",
+      "src": "collegiate",
+      "section": "alpha",
+      "stems": [
+        "present perfect",
+        "present perfects"
+      ],
+      "offensive": false
+    },
+    "hwi": {
+      "hw": "present perfect"
+    },
+    "fl": "adjective",
+    "def": [
+      {
+        "sseq": [
+          [
+            [
+              "sense",
+              {
+                "dt": [
+                  [
+                    "text",
+                    "{bc}of, relating to, or constituting a verb tense that is traditionally formed in English with {it}have{/it} and a {d_link|past participle|past participle} and that expresses an action or state begun in the past and completed at the time of speaking (as in \"I have finished\") or continuing in the present (as in \"We have lived here for several years\")"
+                  ]
+                ]
+              }
+            ]
+          ]
+        ]
+      }
+    ],
+    "uros": [
+      {
+        "ure": "present perfect",
+        "fl": "noun"
+      }
+    ],
+    "date": "1887",
+    "shortdef": [
+      "of, relating to, or constituting a verb tense that is traditionally formed in English with have and a past participle and that expresses an action or state begun in the past and completed at the time of speaking (as in \"I have finished\") or continuing in the present (as in \"We have lived here for several years\")"
+    ]
+  },
+  {
+    "meta": {
+      "id": "present tense",
+      "uuid": "8d2fe96f-6006-4fd4-b831-a470971eff04",
+      "sort": "167208000",
+      "src": "collegiate",
+      "section": "alpha",
+      "stems": [
+        "present tense",
+        "present tenses"
+      ],
+      "offensive": false
+    },
+    "hwi": {
+      "hw": "present tense"
+    },
+    "fl": "noun",
+    "def": [
+      {
+        "sseq": [
+          [
+            [
+              "sense",
+              {
+                "dt": [
+                  [
+                    "text",
+                    "{bc}the tense of a verb that expresses action or state in the present time and is used of what occurs or is true at the time of speaking and of what is habitual or characteristic or is always or necessarily true, that is sometimes used to refer to action in the past, and that is sometimes used for future events"
+                  ]
+                ]
+              }
+            ]
+          ]
+        ]
+      }
+    ],
+    "date": "14th century",
+    "shortdef": [
+      "the tense of a verb that expresses action or state in the present time and is used of what occurs or is true at the time of speaking and of what is habitual or characteristic or is always or necessarily true, that is sometimes used to refer to action in the past, and that is sometimes used for future events"
+    ]
+  },
+  {
+    "meta": {
+      "id": "present value",
+      "uuid": "1207ee5d-73b8-4717-ab48-dbeb9607f06d",
+      "sort": "167209000",
+      "src": "collegiate",
+      "section": "alpha",
+      "stems": [
+        "present value",
+        "present values"
+      ],
+      "offensive": false
+    },
+    "hwi": {
+      "hw": "present value"
+    },
+    "fl": "noun",
+    "def": [
+      {
+        "sseq": [
+          [
+            [
+              "sense",
+              {
+                "dt": [
+                  [
+                    "text",
+                    "{bc}the sum of money which if invested now at a given rate of compound interest will accumulate exactly to a specified amount at a specified future date"
+                  ]
+                ]
+              }
+            ]
+          ]
+        ]
+      }
+    ],
+    "date": "1831",
+    "shortdef": [
+      "the sum of money which if invested now at a given rate of compound interest will accumulate exactly to a specified amount at a specified future date"
+    ]
+  }
+]
