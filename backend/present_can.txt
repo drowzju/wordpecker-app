@@ -1,0 +1,77 @@
+Transformed to canonical entry: {
+  "word": "present",
+  "dictionary": [
+    {
+      "partOfSpeech": "noun",
+      "entryNumber": 1,
+      "phonetics": [
+        {
+          "text": "ˈpre-zᵊnt",
+          "audio": "https://media.merriam-webster.com/audio/prons/en/us/mp3/p/presen02.mp3"
+        }
+      ],
+      "definitions": [],
+      "derivatives": []
+    },
+    {
+      "partOfSpeech": "verb",
+      "entryNumber": 2,
+      "phonetics": [
+        {
+          "text": "pri-ˈzent",
+          "audio": "https://media.merriam-webster.com/audio/prons/en/us/mp3/p/presen03.mp3"
+        }
+      ],
+      "definitions": [],
+      "derivatives": []
+    },
+    {
+      "partOfSpeech": "adjective",
+      "entryNumber": 3,
+      "phonetics": [
+        {
+          "text": "ˈpre-zᵊnt",
+          "audio": "https://media.merriam-webster.com/audio/prons/en/us/mp3/p/presen04.mp3"
+        }
+      ],
+      "definitions": [],
+      "derivatives": [
+        {
+          "word": "presentness",
+          "partOfSpeech": "noun"
+        }
+      ]
+    },
+    {
+      "partOfSpeech": "noun",
+      "entryNumber": 4,
+      "phonetics": [
+        {
+          "text": "ˈpre-zᵊnt",
+          "audio": "https://media.merriam-webster.com/audio/prons/en/us/mp3/p/presen04.mp3"
+        }
+      ],
+      "definitions": [],
+      "derivatives": []
+    }
+  ],
+  "stems": [
+    "at present",
+    "present",
+    "presents",
+    "presented",
+    "presenting",
+    "presentness",
+    "presentnesses",
+    "present arms",
+    "present-day",
+    "present participle",
+    "present participles",
+    "present perfect",
+    "present perfects",
+    "present tense",
+    "present tenses",
+    "present value",
+    "present values"
+  ]
+}

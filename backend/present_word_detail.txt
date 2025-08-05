@@ -1,16 +1,16 @@
 {
-    "id": "6892078cb6fe9a943a16b701",
+    "id": "6892100604954c68c99ca55b",
     "value": "present",
     "contexts": [
         {
             "listId": "688984260ca3978a5d79c43f",
             "listName": "word power made easy",
             "listContext": "",
-            "meaning": "动词，指展示或介绍某物或某人，也可表示出席或到场。",
+            "meaning": "动词，指展示或赠送某物给某人。",
             "learnedPoint": 0
         }
     ],
-    "definition": "动词，指展示或介绍某物或某人，也可表示出席或到场。",
+    "definition": "动词，指展示或赠送某物给某人。",
     "dictionary": [
         {
             "word": "present",
@@ -20,114 +20,35 @@
                     "entryNumber": 1,
                     "phonetics": [
                         {
-                            "text": "pri-ˈzent-",
-                            "audio": "https://media.merriam-webster.com/audio/prons/en/us/mp3/p/presen10.mp3"
-                        }
-                    ],
-                    "definitions": [
-                        {
-                            "definition": "a position in the manual of arms in which the rifle is held vertically in front of the body"
-                        },
-                        {
-                            "definition": "a command to assume the position of present arms or to give a hand salute"
-                        }
-                    ],
-                    "derivatives": []
-                },
-                {
-                    "partOfSpeech": "noun",
-                    "entryNumber": 2,
-                    "phonetics": [
-                        {
                             "text": "ˈpre-zᵊnt",
                             "audio": "https://media.merriam-webster.com/audio/prons/en/us/mp3/p/presen02.mp3"
                         }
                     ],
-                    "definitions": [
-                        {
-                            "definition": "something "
-                        }
-                    ],
+                    "definitions": [],
                     "derivatives": []
                 },
                 {
                     "partOfSpeech": "verb",
-                    "entryNumber": 3,
+                    "entryNumber": 2,
                     "phonetics": [
                         {
                             "text": "pri-ˈzent",
                             "audio": "https://media.merriam-webster.com/audio/prons/en/us/mp3/p/presen03.mp3"
                         }
                     ],
-                    "definitions": [
-                        {
-                            "definition": "to make a gift to"
-                        },
-                        {
-                            "definition": "to give or bestow formally"
-                        },
-                        {
-                            "definition": "to bring (something, such as a play) before the public"
-                        },
-                        {
-                            "definition": ""
-                        },
-                        {
-                            "definition": "to offer to view {sx|show||}"
-                        },
-                        {
-                            "definition": "to bring to one's attention "
-                        },
-                        {
-                            "definition": "to lay (something, such as a charge) before a court as an object of inquiry"
-                        },
-                        {
-                            "definition": "to bring a formal public charge, indictment, or {a_link|presentment} against"
-                        },
-                        {
-                            "definition": "to nominate to a benefice"
-                        },
-                        {
-                            "definition": "to aim, point, or direct (something, such as a weapon) so as to face something or in a particular direction"
-                        },
-                        {
-                            "definition": "to act the part of {sx|perform||}"
-                        }
-                    ],
+                    "definitions": [],
                     "derivatives": []
                 },
                 {
                     "partOfSpeech": "adjective",
-                    "entryNumber": 4,
+                    "entryNumber": 3,
                     "phonetics": [
                         {
                             "text": "ˈpre-zᵊnt",
                             "audio": "https://media.merriam-webster.com/audio/prons/en/us/mp3/p/presen04.mp3"
                         }
                     ],
-                    "definitions": [
-                        {
-                            "definition": "now existing or in progress"
-                        },
-                        {
-                            "definition": "being in view or at hand"
-                        },
-                        {
-                            "definition": "existing in something mentioned or under consideration"
-                        },
-                        {
-                            "definition": "constituting the one actually involved, at hand, or being considered"
-                        },
-                        {
-                            "definition": "of, relating to, or constituting a verb tense that is expressive of present time or the time of speaking"
-                        },
-                        {
-                            "definition": "{sx|instant||}, {sx|immediate||}"
-                        },
-                        {
-                            "definition": "{sx|attentive||}"
-                        }
-                    ],
+                    "definitions": [],
                     "derivatives": [
                         {
                             "word": "presentness",
@@ -137,30 +58,14 @@
                 },
                 {
                     "partOfSpeech": "noun",
-                    "entryNumber": 5,
+                    "entryNumber": 4,
                     "phonetics": [
                         {
                             "text": "ˈpre-zᵊnt",
                             "audio": "https://media.merriam-webster.com/audio/prons/en/us/mp3/p/presen04.mp3"
                         }
                     ],
-                    "definitions": [
-                        {
-                            "definition": "the present time"
-                        },
-                        {
-                            "definition": "the present tense of a language"
-                        },
-                        {
-                            "definition": "a verb form in the present tense"
-                        },
-                        {
-                            "definition": "the present words or statements"
-                        },
-                        {
-                            "definition": "present occasion or affair"
-                        }
-                    ],
+                    "definitions": [],
                     "derivatives": []
                 }
             ],
@@ -186,6 +91,6 @@
         }
     ],
     "examples": [],
-    "created_at": "2025-08-05T13:30:52.650Z",
-    "updated_at": "2025-08-05T13:30:52.650Z"
+    "created_at": "2025-08-05T14:07:02.126Z",
+    "updated_at": "2025-08-05T14:07:02.126Z"
 }
