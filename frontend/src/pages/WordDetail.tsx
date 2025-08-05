@@ -45,7 +45,7 @@ import {
   AccordionPanel,
   AccordionIcon,
 } from '@chakra-ui/react';
-import { FaArrowLeft, FaLightbulb, FaBookOpen, FaEye, FaEyeSlash, FaCamera, FaRobot, FaExchangeAlt, FaPlus, FaTrash } from 'react-icons/fa';
+import { FaArrowLeft, FaLightbulb, FaBookOpen, FaEye, FaEyeSlash, FaCamera, FaRobot, FaExchangeAlt, FaPlus, FaTrash, FaExternalLinkAlt } from 'react-icons/fa';
 import { apiService } from '../services/api';
 import { WordDetail, SentenceExample, SimilarWordsResponse, WordList } from '../types';
 import PronunciationButton from '../components/PronunciationButton';
@@ -608,9 +608,23 @@ export function WordDetailPage() {
 
       {wordDetail.dictionary && wordDetail.dictionary.length > 0 && wordDetail.dictionary[0].dictionary && (
         <Box mb={6}>
-          <Heading as="h2" size={{ base: "md", md: "lg" }} color="blue.400" mb={4}>
-            📖 Dictionary Results for "{wordDetail.value}"
-          </Heading>
+          <Flex justify="space-between" align="center" mb={4}>
+            <Heading as="h2" size={{ base: "md", md: "lg" }} color="blue.400">
+              📖 Dictionary Results for "{wordDetail.value}"
+            </Heading>
+            <Button
+              as="a"
+              href={`https://www.merriam-webster.com/dictionary/${wordDetail.value}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              rightIcon={<FaExternalLinkAlt />}
+              colorScheme="blue"
+              variant="outline"
+              size="sm"
+            >
+              Merriam-Webster
+            </Button>
+          </Flex>
           <Accordion allowMultiple defaultIndex={[0]}>
             {wordDetail.dictionary[0].dictionary.map((entry, entryIndex) => (
               <AccordionItem key={entryIndex} bg={cardBg} borderRadius="lg" mb={4}>
