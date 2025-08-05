@@ -494,6 +494,21 @@ export function WordDetailPage() {
             </Text>
           </VStack>
           
+          {(!wordDetail.dictionary || wordDetail.dictionary.length === 0 || !wordDetail.dictionary[0].dictionary) && (
+            <Button
+              as="a"
+              href={`https://www.merriam-webster.com/dictionary/${wordDetail.value}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              rightIcon={<FaExternalLinkAlt />}
+              colorScheme="blue"
+              variant="outline"
+              size="sm"
+            >
+              Merriam-Webster
+            </Button>
+          )}
+
           {wordDetail.contexts.length > 1 && (
             <Text fontSize="sm" color="blue.300" fontWeight="medium">
               Selected context applies to examples and similar words
