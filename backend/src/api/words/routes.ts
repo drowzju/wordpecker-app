@@ -25,7 +25,6 @@ const transformWord = (word: IWord, listId: string) => {
     meaning: context?.meaning || '',
     learnedPoint: context?.learnedPoint || 0,
     definition: word.definition,
-    phonetic: word.phonetic,
     dictionary: word.dictionary,
     created_at: word.created_at.toISOString(),
     updated_at: word.updated_at.toISOString()
@@ -63,7 +62,6 @@ router.post('/:listId/words', validate(addWordSchema), async (req, res) => {
         value: normalizedValue,
         ownedByLists: [{ listId: new mongoose.Types.ObjectId(listId), meaning: definitionResult.definition, learnedPoint: 0 }],
         definition: definitionResult.definition,
-        phonetic: definitionResult.phonetic,
         dictionary: definitionResult.dictionary,
       };
       console.log('Creating new word with data:', JSON.stringify(newWordData, null, 2));
@@ -148,7 +146,6 @@ router.get('/word/:wordId', validate(wordIdSchema), async (req, res) => {
       value: word.value,
       contexts,
       definition: word.definition,
-      phonetic: word.phonetic,
       dictionary: word.dictionary,
       examples: word.examples,
       created_at: word.created_at.toISOString(),

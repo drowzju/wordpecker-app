@@ -91,6 +91,7 @@ export function WordDetailPage() {
     
     try {
       const data = await apiService.getWordDetails(wordId);
+      console.log('Fetched word details from API:', data);
       setWordDetail(data);
       if (data.examples && data.examples.length > 0) {
         setShowSentences(true);
@@ -428,14 +429,17 @@ export function WordDetailPage() {
         >
           {wordDetail.value}
         </Heading>
-        <PronunciationButton
-          text={wordDetail.value}
-          type="word"
-          language="en" // TODO: Get from user preferences
-          size="lg"
-          colorScheme="blue"
-          tooltipText={`Listen to pronunciation of "${wordDetail.value}"`}
-        />
+        {wordDetail.dictionary?.[0]?.phonetics?.[0]?.audio && (
+          <PronunciationButton
+            text={wordDetail.value}
+            audioUrl={wordDetail.dictionary[0].phonetics[0].audio}
+            type="word"
+            language="en" // TODO: Get from user preferences
+            size="lg"
+            colorScheme="blue"
+            tooltipText={`Listen to pronunciation of "${wordDetail.value}"`}
+          />
+        )}
       </Flex>
 
       {/* Context Selection */}
@@ -525,11 +529,6 @@ export function WordDetailPage() {
                     <Text fontSize="md" fontWeight="medium" wordBreak="break-word" lineHeight="1.6">
                       {context.meaning}
                     </Text>
-                    {wordDetail.phonetic && (
-                      <Text fontSize="sm" color="gray.400" mt={2}>
-                        {wordDetail.phonetic}
-                      </Text>
-                    )}
                   </VStack>
                   
                   <VStack align="end" spacing={2} flexShrink={0}>
@@ -573,41 +572,66 @@ export function WordDetailPage() {
           <Heading as="h2" size={{ base: "md", md: "lg" }} color="blue.400" mb={3}>
             📖 Dictionary Result
           </Heading>
-          <VStack spacing={3} align="stretch">
-            {wordDetail.dictionary.flatMap((entry, entryIndex) => 
-              entry.meanings.map((meaning, meaningIndex) => (
-                <Card key={`${entryIndex}-${meaningIndex}`} bg={cardBg} borderColor={borderColor} borderWidth="1px">
-                  <CardBody py={4}>
-                    <VStack align="start" spacing={3} w="full">
-                      <Badge 
-                        colorScheme="purple"
-                        variant="subtle"
-                        fontSize="sm"
-                        px={3}
-                        py={1}
-                        borderRadius="full"
-                      >
-                        {meaning.partOfSpeech}
-                      </Badge>
-                      <VStack align="stretch" spacing={3} w="full">
-                        {meaning.definitions.map((def, defIndex) => (
-                          <Box key={defIndex}>
-                            <Text fontSize="md" fontWeight="medium" wordBreak="break-word" lineHeight="1.6">
-                              {def.definition}
-                            </Text>
-                            {def.example && (
-                              <Text fontSize="sm" color="gray.400" mt={1} fontStyle="italic">
-                                e.g., {def.example}
-                              </Text>
+          <VStack spacing={4} align="stretch">
+            {wordDetail.dictionary.map((entry, entryIndex) => (
+              <Card key={entryIndex} bg={cardBg} borderColor={borderColor} borderWidth="1px">
+                <CardBody py={4}>
+                  <VStack align="start" spacing={4}>
+                    {entry.phonetics && entry.phonetics.length > 0 && (
+                      <HStack spacing={4} wrap="wrap">
+                        {entry.phonetics.map((phonetic, phoneticIndex) => (
+                          <HStack key={phoneticIndex} align="center">
+                            {phonetic.audio && (
+                              <PronunciationButton
+                                text={entry.word}
+                                audioUrl={phonetic.audio}
+                                type="word"
+                                language="en"
+                                size="sm"
+                                colorScheme="blue"
+                                tooltipText={`Listen to ${phonetic.text}`}
+                              />
                             )}
-                          </Box>
+                            <Text fontSize="md" color="gray.400">
+                              {phonetic.text}
+                            </Text>
+                          </HStack>
                         ))}
-                      </VStack>
-                    </VStack>
-                  </CardBody>
-                </Card>
-              ))
-            )}
+                      </HStack>
+                    )}
+                    {entry.meanings.map((meaning, meaningIndex) => (
+                      <Box key={meaningIndex} w="full">
+                        <Badge 
+                          colorScheme="purple"
+                          variant="subtle"
+                          fontSize="sm"
+                          px={3}
+                          py={1}
+                          borderRadius="full"
+                          mb={2}
+                        >
+                          {meaning.partOfSpeech}
+                        </Badge>
+                        <VStack align="stretch" spacing={3} w="full">
+                          {meaning.definitions.map((def, defIndex) => (
+                            <Box key={defIndex}>
+                              <Text fontSize="md" fontWeight="medium" wordBreak="break-word" lineHeight="1.6">
+                                {def.definition}
+                              </Text>
+                              {def.example && (
+                                <Text fontSize="sm" color="gray.400" mt={1} fontStyle="italic">
+                                  e.g., {def.example}
+                                </Text>
+                              )}
+                            </Box>
+                          ))}
+                        </VStack>
+                      </Box>
+                    ))}
+                  </VStack>
+                </CardBody>
+              </Card>
+            ))}
           </VStack>
         </Box>
       )}

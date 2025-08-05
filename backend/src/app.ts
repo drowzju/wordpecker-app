@@ -59,7 +59,9 @@ const app = express();
 
 // Global middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173'
+}));
 app.use(express.json());
 
 // Apply rate limiter only to OpenAI-powered routes

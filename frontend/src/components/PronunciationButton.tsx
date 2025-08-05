@@ -13,6 +13,8 @@ import AudioPlayer from './AudioPlayer';
 export interface PronunciationButtonProps {
   /** Text to pronounce */
   text: string;
+  /** Direct URL for the audio file */
+  audioUrl?: string;
   /** Type of content being pronounced */
   type?: 'word' | 'sentence' | 'general';
   /** Language code (e.g., 'en', 'tr', 'es') - if not provided, uses user's target language */
@@ -43,6 +45,7 @@ export interface PronunciationButtonProps {
 
 export const PronunciationButton: React.FC<PronunciationButtonProps> = ({
   text,
+  audioUrl: initialAudioUrl,
   type = 'general',
   language, // Will use user's target language if not provided
   context,
@@ -57,7 +60,7 @@ export const PronunciationButton: React.FC<PronunciationButtonProps> = ({
   onEnd,
   icon,
 }) => {
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(initialAudioUrl || null);
   const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,18 +72,15 @@ export const PronunciationButton: React.FC<PronunciationButtonProps> = ({
   const iconColor = useColorModeValue('gray.600', 'gray.400');
   const accentColor = useColorModeValue('blue.500', 'blue.400');
 
-  // Reset audio state when text changes
+  // Reset audio state when text or initialAudioUrl changes
   useEffect(() => {
-    // Stop any playing audio
     if (audioRef.current) {
       audioRef.current.pause();
     }
-    
-    // Reset state
-    setAudioUrl(null);
+    setAudioUrl(initialAudioUrl || null);
     setIsPlaying(false);
     setError(null);
-  }, [text]);
+  }, [text, initialAudioUrl]);
 
   const defaultTooltip = `Listen to pronunciation${type === 'word' ? ` of "${text}"` : ''}${language ? ` in ${language.toUpperCase()}` : ''}`;
 
@@ -92,9 +92,6 @@ export const PronunciationButton: React.FC<PronunciationButtonProps> = ({
 
     try {
       let response;
-      
-      // Choose the appropriate API method based on type
-      // Note: language parameter is optional - backend will use user's target language if not provided
       switch (type) {
         case 'word':
           response = await apiService.generateWordPronunciation(text, language, context);
@@ -131,7 +128,6 @@ export const PronunciationButton: React.FC<PronunciationButtonProps> = ({
 
   const handleClick = async () => {
     if (isPlaying && audioRef.current) {
-      // Pause if currently playing
       audioRef.current.pause();
       setIsPlaying(false);
       return;
@@ -139,11 +135,9 @@ export const PronunciationButton: React.FC<PronunciationButtonProps> = ({
 
     if (!audioUrl) {
       await generateAudio();
-      // After generating audio, it will be set in the state and the audio element will be created
       return;
     }
 
-    // Play the audio
     if (audioRef.current) {
       try {
         await audioRef.current.play();
@@ -166,35 +160,34 @@ export const PronunciationButton: React.FC<PronunciationButtonProps> = ({
     setError('Audio playback failed');
   };
 
-  // Auto-play audio after generation
   useEffect(() => {
-    if (audioUrl && !isPlaying) {
+    if (audioUrl && !isPlaying && audioRef.current) {
+        audioRef.current.src = audioUrl;
+        audioRef.current.load();
+    }
+}, [audioUrl]);
+
+
+  // Auto-play audio after generation or URL change
+  useEffect(() => {
+    if (audioUrl && !isPlaying && audioRef.current) {
       const playAudio = async () => {
-        // Wait for the audio element to be ready
-        if (!audioRef.current) {
-          // Try again after a short delay
-          setTimeout(playAudio, 100);
-          return;
-        }
-        
         try {
-          // Ensure the audio is loaded before playing
-          audioRef.current.load();
           await audioRef.current.play();
           setIsPlaying(true);
           onPlay?.();
         } catch (err) {
           console.error('Auto-play failed:', err);
-          // Don't set error for auto-play failures, user can manually click to play
         }
       };
-      
-      // Small delay to ensure audio element is ready
-      setTimeout(playAudio, 100);
+      // This logic is tricky. We only want to auto-play if we just generated the audio.
+      // A simple way is to check if we were loading just before.
+      if(isLoading) {
+        setTimeout(playAudio, 100);
+      }
     }
-  }, [audioUrl]); // Remove dependencies that might cause re-runs
+  }, [audioUrl, isLoading]); // Simplified dependencies
 
-  // Show full player when we have audio and not minimal
   if (audioUrl && !minimal) {
     return (
       <AudioPlayer
@@ -215,7 +208,6 @@ export const PronunciationButton: React.FC<PronunciationButtonProps> = ({
     );
   }
 
-  // Always render the minimal button interface
   return (
     <>
       <Tooltip label={tooltipText || defaultTooltip} hasArrow placement="top">
@@ -249,16 +241,14 @@ export const PronunciationButton: React.FC<PronunciationButtonProps> = ({
           transition="all 0.2s"
         />
       </Tooltip>
-      {audioUrl && (
-        <audio
-          ref={audioRef}
-          src={audioUrl}
-          onEnded={handleAudioEnd}
-          onError={handleAudioError}
-          preload="metadata"
-          style={{ display: 'none' }}
-        />
-      )}
+      <audio
+        ref={audioRef}
+        src={audioUrl || ''}
+        onEnded={handleAudioEnd}
+        onError={handleAudioError}
+        preload="metadata"
+        style={{ display: 'none' }}
+      />
     </>
   );
 };

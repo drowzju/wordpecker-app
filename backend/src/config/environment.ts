@@ -15,5 +15,6 @@ export const environment = {
   openaiBaseUrl: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
   mongodbUrl: process.env.MONGODB_URL!,
   dashscopeApiKey: process.env.DASHSCOPE_API_KEY,
+  merriamWebsterApiKey: process.env.MERRIAM_WEBSTER_API_KEY,
   aiProvider: process.env.AI_PROVIDER || 'openai'
 } as const; 

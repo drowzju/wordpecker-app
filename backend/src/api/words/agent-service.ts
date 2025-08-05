@@ -51,12 +51,6 @@ export class WordAgentService {
     const dictionaryData = await getDictionaryDefinition(word);
     if (dictionaryData) {
       definitionResult.dictionary = dictionaryData;
-      if (!definitionResult.phonetic) {
-        const firstPhonetic = dictionaryData[0]?.phonetics?.find(p => p.text);
-        if (firstPhonetic && firstPhonetic.text) {
-          definitionResult.phonetic = firstPhonetic.text;
-        }
-      }
     }
   
     return definitionResult;

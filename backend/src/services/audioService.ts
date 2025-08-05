@@ -3,6 +3,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { Readable } from 'stream';
 import { pipeline } from 'stream/promises';
+import axios from 'axios';
 import { getUserLanguages } from '../utils/getUserLanguages';
 import { textToSpeechQwen } from './qwen'; // Import our new Qwen TTS function
 

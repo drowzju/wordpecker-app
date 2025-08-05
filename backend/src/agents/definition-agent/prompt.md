@@ -25,19 +25,12 @@ Provide a clear, educational definition for the word provided by the user.
    - If it's just a general word appearing in context, provide the standard definition
    - Don't force contextual connections that don't naturally exist
 
-4. **Educational Value:**
-   - Make your definition helpful for language learners
-   - Include usage hints if they would be valuable
-   - Consider common confusions learners might have
-   - **If available, provide the International Phonetic Alphabet (IPA) transcription for the word.**
-
 ## Output Format
 
 **CRITICAL:** Your final output MUST be a single, valid JSON object that conforms to the following Zod schema. Do not include any explanatory text, markdown formatting, or anything else outside of the JSON object.
 
 ```json
 {
-  "definition": "The clear, concise definition of the word goes here.",
-  "phonetic": "/fəˈnɛtɪk/"
+  "definition": "The clear, concise definition of the word goes here."
 }
 ```
