@@ -50,6 +50,38 @@ import { apiService } from '../services/api';
 import { WordDetail, SentenceExample, SimilarWordsResponse, WordList } from '../types';
 import PronunciationButton from '../components/PronunciationButton';
 
+// Helper to transform old dictionary structure to the new one
+const transformWordDetailDictionary = (wordDetail: WordDetail): WordDetail => {
+  if (wordDetail.dictionary && wordDetail.dictionary.length > 0) {
+    // Check if the first entry has 'meanings' but not 'dictionary' property, indicating old structure
+    const firstEntry = wordDetail.dictionary[0];
+    if (firstEntry.meanings && !firstEntry.dictionary) {
+      console.log("Transforming old dictionary structure:", firstEntry);
+      return {
+        ...wordDetail,
+        dictionary: [
+          {
+            ...firstEntry, // Keep word, phonetics, etc.
+            dictionary: firstEntry.meanings.map((meaning, index) => ({
+              partOfSpeech: meaning.partOfSpeech,
+              definitions: meaning.definitions.map((def, defIndex) => ({
+                ...def,
+                number: `${index + 1}.${defIndex + 1}`
+              })),
+              derivatives: [], // Old structure doesn't have this
+              entryNumber: `${index + 1}`
+            })),
+            stems: [] // Old structure doesn't have this
+          }
+        ]
+      };
+    }
+  }
+  console.log("No dictionary transformation needed.");
+  return wordDetail;
+};
+
+
 export function WordDetailPage() {
   const { wordId } = useParams<{ wordId: string }>();
   const navigate = useNavigate();
@@ -99,7 +131,9 @@ export function WordDetailPage() {
     try {
       const data = await apiService.getWordDetails(wordId);
       console.log('Fetched word details from API:', data);
-      setWordDetail(data);
+      const transformedData = transformWordDetailDictionary(data);
+      console.log('Transformed word details:', transformedData);
+      setWordDetail(transformedData);
       if (data.examples && data.examples.length > 0) {
         setShowSentences(true);
       }
@@ -125,7 +159,7 @@ export function WordDetailPage() {
       toast({
         title: 'Examples Generated!',
         description: selectedContext ? 
-          `Generated examples for "${wordDetail?.value}" in ${selectedContext.listContext || selectedContext.listName} context` :
+          `Generated examples for "${wordDetail?.value}" in ${selectedContext.listContext || selectedContext.listName}` :
           `Generated examples for "${wordDetail?.value}"`,
         status: 'success',
         duration: 3000,
@@ -573,7 +607,7 @@ export function WordDetailPage() {
 
       <Divider my={8} />
 
-      {wordDetail.dictionary && wordDetail.dictionary.length > 0 && (
+      {wordDetail.dictionary && wordDetail.dictionary.length > 0 && wordDetail.dictionary[0].dictionary && (
         <Box mb={6}>
           <Heading as="h2" size={{ base: "md", md: "lg" }} color="blue.400" mb={4}>
             📖 Dictionary Results for "{wordDetail.value}"
@@ -596,7 +630,7 @@ export function WordDetailPage() {
                   <VStack align="stretch" spacing={4}>
                     {/* Phonetics */}
                     <HStack spacing={4} wrap="wrap">
-                      {entry.phonetics.map((phonetic, phoneticIndex) => (
+                      {entry.phonetics && entry.phonetics.map((phonetic, phoneticIndex) => (
                         <HStack key={phoneticIndex} align="center">
                           {phonetic.audio && (
                             <PronunciationButton
