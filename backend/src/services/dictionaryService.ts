@@ -46,7 +46,7 @@ interface MerriamWebsterUro {
   prs?: MerriamWebsterPronunciation[];
 }
 
-interface MerriamWebsterEntry {
+export interface MerriamWebsterEntry {
   meta: { id: string; stems?: string[]; };
   hom?: number;
   hwi: { hw: string; prs?: MerriamWebsterPronunciation[]; };
@@ -92,16 +92,37 @@ function extractSenses(data: any, definitions: Definition[] = []): Definition[] 
     if (Array.isArray(data)) {
         if (data[0] === 'sense') {
             const sense = data[1];
-            const definitionParts: string[] = [];
-            sense.dt?.forEach((dt: any[]) => {
-                if (dt[0] === 'text') {
-                    definitionParts.push(cleanDefinitionText(dt[1]));
-                } else if (dt[0] === 'vis') {
-                    const examples = dt[1].map((v: any) => cleanDefinitionText(v.t)).join(', ');
-                    definitionParts.push(`e.g., ${examples}`);
+            let definitionText = '';
+            const examples: string[] = [];
+
+            const processDt = (dt: any[]) => {
+                dt.forEach((item: any[]) => {
+                    if (item[0] === 'text') {
+                        definitionText += ' ' + cleanDefinitionText(item[1]);
+                    } else if (item[0] === 'vis') {
+                        item[1].forEach((v: any) => {
+                            examples.push(cleanDefinitionText(v.t));
+                        });
+                    }
+                });
+            };
+
+            if (sense.dt) {
+                processDt(sense.dt);
+            }
+
+            if (sense.sdsense) {
+                definitionText += ` especially : ${cleanDefinitionText(sense.sdsense.sd || '')}`;
+                if (sense.sdsense.dt) {
+                    processDt(sense.sdsense.dt);
                 }
-            });
-            const fullDefinition = definitionParts.join(' ').trim();
+            }
+
+            let fullDefinition = definitionText.trim();
+            if (examples.length > 0) {
+                fullDefinition += ` e.g., ${examples.join(', ')}`;
+            }
+
             if (fullDefinition) {
                 definitions.push({
                     number: sense.sn,
@@ -119,7 +140,7 @@ function extractSenses(data: any, definitions: Definition[] = []): Definition[] 
 
 // --- Core Transformation Logic ---
 
-const transformMerriamWebsterResponse = async (apiResponse: MerriamWebsterEntry[], query: string): Promise<DictionaryDocument | null> => {
+export const transformMerriamWebsterResponse = async (apiResponse: MerriamWebsterEntry[], query: string): Promise<DictionaryDocument | null> => {
   if (!apiResponse || apiResponse.length === 0 || typeof apiResponse[0] !== 'object') {
     return null;
   }
