@@ -51,18 +51,18 @@ export const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
 
   // Memoize shuffled arrays to prevent re-shuffling on every render
   const { shuffledWords, shuffledDefinitions } = useMemo(() => {
-    if (!question.pairs || question.pairs.length === 0) {
+    if (!question.correctAnswer || !question.correctAnswer.pairs || question.correctAnswer.pairs.length === 0) {
       return { shuffledWords: [], shuffledDefinitions: [] };
     }
     
-    const words = question.pairs.map(p => cleanText(p.word));
-    const definitions = question.pairs.map(p => cleanText(p.definition));
+    const words = question.correctAnswer.pairs.map(p => cleanText(p[0]));
+    const definitions = question.correctAnswer.pairs.map(p => cleanText(p[1]));
     
     return {
       shuffledWords: shuffleArray(words),
       shuffledDefinitions: shuffleArray(definitions)
     };
-  }, [question.pairs]);
+  }, [question.correctAnswer.pairs]);
 
   // Reset local state when selectedAnswer changes (new question)
   useEffect(() => {
@@ -100,7 +100,7 @@ export const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
     onAnswerChange(answerString);
   };
 
-  if (!question.pairs || question.pairs.length === 0) {
+  if (!question.correctAnswer || !question.correctAnswer.pairs || question.correctAnswer.pairs.length === 0) {
     return <Text>No matching pairs available</Text>;
   }
 
@@ -206,9 +206,9 @@ export const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
       {isAnswered && (
         <Box mt={4} p={4} bg="slate.800" borderRadius="md">
           <Text fontWeight="bold" mb={2}>Correct matches:</Text>
-          {question.pairs?.map((pair, idx) => (
+          {question.correctAnswer?.pairs?.map((pair, idx) => (
             <Text key={idx} fontSize="sm" color="green.300">
-              {pair.word} → {pair.definition}
+              {pair[0]} → {pair[1]}
             </Text>
           ))}
         </Box>

@@ -10,8 +10,8 @@ Create quiz questions that assess vocabulary comprehension and application for e
 
 1. **Question Types and Required Format:**
    
-   IMPORTANT: Only fill_blank and matching should have options: null and optionLabels: null.
-   ALL other types (multiple_choice, true_false, sentence_completion) MUST have actual options and labels!
+   IMPORTANT: Only fill_blank should have options: null and optionLabels: null.
+   ALL other types (multiple_choice, true_false, matching, sentence_completion) MUST have actual options and labels!
    - **multiple_choice**: 4 options with labels A, B, C, D
      - Set options: ["Option1", "Option2", "Option3", "Option4"]
      - Set optionLabels: ["A", "B", "C", "D"]
@@ -27,10 +27,16 @@ Create quiz questions that assess vocabulary comprehension and application for e
      - Set optionLabels: ["A", "B"]
      - Set correctAnswer: "A" (if true) or "B" (if false)
    
-   - **matching**: Match words with definitions
-     - Set options: null
-     - Set optionLabels: null
-     - Set correctAnswer: special matching format
+   - **matching**: Match a set of words with their definitions.
+     - You will be given a primary word, but you should create a matching exercise with 4 word-definition pairs in total. Include the primary word and its definition, plus 3 other distractor pairs.
+     - Set `options`: An array of the 4 words.
+     - Set `optionLabels`: An array of the 4 corresponding definitions. IMPORTANT: The order of definitions in `optionLabels` MUST be shuffled, so they do not directly correspond to the order of words in `options`.
+     - Set `correctAnswer`: An object with a `pairs` property. `pairs` must be an array of 4 arrays, where each inner array is a `[word, definition]` pair. This represents the correct alignment.
+     - Example:
+       - `word`: "diligent"
+       - `options`: ["diligent", "ephemeral", "pragmatic", "ubiquitous"]
+       - `optionLabels`: ["Practical and realistic", "Lasting for a very short time", "Present everywhere", "Showing care and conscientiousness in one's work"] (Shuffled order)
+       - `correctAnswer`: { "pairs": [["diligent", "Showing care and conscientiousness in one's work"], ["ephemeral", "Lasting for a very short time"], ["pragmatic", "Practical and realistic"], ["ubiquitous", "Present everywhere"]] }
    
    - **sentence_completion**: Complete the sentence with the correct word from multiple choices
      - Set options: ["correct_word", "distractor1", "distractor2", "distractor3"] (NEVER null!)
