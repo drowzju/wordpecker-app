@@ -1,4 +1,4 @@
-import { ExerciseResult, ExerciseResultType } from './schemas';
+import { ExerciseResultType } from './schemas';
 import * as fs from 'fs';
 import * as path from 'path';
 import { generativeAIService } from '../../services/ai';

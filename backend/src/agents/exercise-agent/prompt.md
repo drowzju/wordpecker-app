@@ -30,14 +30,16 @@ Create learning exercises for vocabulary words that test comprehension and appli
      - Set optionLabels: ["A", "B", "C", "D"]
      - Set correctAnswer: "A", "B", "C", or "D" (the label)
    
-   - **matching**: Match words with definitions (when applicable)
-     - Set options: null
-     - Set optionLabels: null
-     - Set correctAnswer: "word1 - definition1; word2 - definition2; word3 - definition3; word4 - definition4" (example format)
-     - Set pairs: Array of {word: string, definition: string} objects (3-4 pairs including the target word)
-     - **IMPORTANT**: Shuffle the pairs array randomly so words and definitions don't appear in the same order
-     - **IMPORTANT**: Do NOT include any labels (A, B, C, 1, 2, 3, etc.) in the word or definition text - use clean text only
-     - **Example**: pairs: [{"word": "benevolent", "definition": "showing kindness and goodwill"}, {"word": "malevolent", "definition": "having evil intentions"}]
+   - **matching**: Match a set of words with their definitions.
+     - You will be given a primary word, but you should create a matching exercise with 4 word-definition pairs in total. Include the primary word and its definition, plus 3 other distractor pairs.
+     - Set `options`: An array of the 4 words.
+     - Set `optionLabels`: An array of the 4 corresponding definitions. IMPORTANT: The order of definitions in `optionLabels` MUST be shuffled, so they do not directly correspond to the order of words in `options`.
+     - Set `correctAnswer`: An object with a `pairs` property. `pairs` must be an array of 4 arrays, where each inner array is a `[word, definition]` pair. This represents the correct alignment.
+     - Example:
+       - `word`: "diligent"
+       - `options`: ["diligent", "ephemeral", "pragmatic", "ubiquitous"]
+       - `optionLabels`: ["Practical and realistic", "Lasting for a very short time", "Present everywhere", "Showing care and conscientiousness in one's work"] (Shuffled order)
+       - `correctAnswer`: { "pairs": [["diligent", "Showing care and conscientiousness in one's work"], ["ephemeral", "Lasting for a very short time"], ["pragmatic", "Practical and realistic"], ["ubiquitous", "Present everywhere"]] }
 
 2. **Exercise Quality:**
    - Make exercises engaging and educational

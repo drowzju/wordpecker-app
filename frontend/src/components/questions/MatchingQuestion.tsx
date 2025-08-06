@@ -1,235 +1,237 @@
-import { 
-  Text, 
-  Button, 
-  VStack, 
+import {
+  Text,
+  Button,
+  VStack,
   Box,
   Stack,
   Grid,
-  GridItem
+  GridItem,
+  useColorModeValue,
+  Alert,
+  AlertIcon,
+  Flex,
+  Badge,
+  HStack,
 } from '@chakra-ui/react';
 import { useState, useEffect, useMemo } from 'react';
 import { Exercise, Question } from '../../types';
 
+// This component now handles answer checking internally after submission
+
 interface MatchingQuestionProps {
   question: Exercise | Question;
-  selectedAnswer: string;
+  selectedAnswer: string; // This will be managed internally but kept for prop consistency
   onAnswerChange: (answer: string) => void;
-  isAnswered: boolean;
-  isCorrect?: boolean | null;
+  isAnswered: boolean; // This prop now triggers the feedback display
+  isCorrect?: boolean | null; // This will be calculated internally
 }
 
 export const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
   question,
-  selectedAnswer,
   onAnswerChange,
-  isAnswered
+  isAnswered,
 }) => {
-  const [matchingAnswers, setMatchingAnswers] = useState<Record<string, string>>({});
+  // State to hold the user's current pairings (word -> definition)
+  const [userPairs, setUserPairs] = useState<Record<string, string>>({});
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
 
-  // Shuffle function for randomizing arrays
-  const shuffleArray = <T,>(array: T[]): T[] => {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  };
+  // A memoized map of the correct answers for efficient lookup
+  const correctPairsMap = useMemo(() => {
+    if (!question.correctAnswer?.pairs) return new Map();
+    return new Map(question.correctAnswer.pairs.map(([word, def]) => [word, def]));
+  }, [question.correctAnswer?.pairs]);
 
-  // Clean function to remove labels like A., B., 1., 2., etc. from text
-  const cleanText = (text: string): string => {
-    return text
-      .replace(/^[A-Za-z]\.\s*/, '') // Remove A., B., C., etc. at the beginning
-      .replace(/^[0-9]+\.\s*/, '') // Remove 1., 2., 3., etc. at the beginning
-      .replace(/^\([A-Za-z]\)\s*/, '') // Remove (A), (B), (C), etc. at the beginning
-      .replace(/^\([0-9]+\)\s*/, '') // Remove (1), (2), (3), etc. at the beginning
-      .replace(/^[A-Za-z]\)\s*/, '') // Remove A), B), C), etc. at the beginning
-      .replace(/^[0-9]+\)\s*/, '') // Remove 1), 2), 3), etc. at the beginning
-      .trim();
-  };
-
-  // Memoize shuffled arrays to prevent re-shuffling on every render
+  // Memoized shuffled lists of words and definitions to prevent re-shuffling on re-renders
   const { shuffledWords, shuffledDefinitions } = useMemo(() => {
-    if (!question.correctAnswer || !question.correctAnswer.pairs || question.correctAnswer.pairs.length === 0) {
-      return { shuffledWords: [], shuffledDefinitions: [] };
-    }
-    
-    const words = question.correctAnswer.pairs.map(p => cleanText(p[0]));
-    const definitions = question.correctAnswer.pairs.map(p => cleanText(p[1]));
-    
+    const words = Array.from(correctPairsMap.keys());
+    const definitions = Array.from(correctPairsMap.values());
+    const shuffle = <T,>(arr: T[]) => [...arr].sort(() => Math.random() - 0.5);
     return {
-      shuffledWords: shuffleArray(words),
-      shuffledDefinitions: shuffleArray(definitions)
+      shuffledWords: shuffle(words),
+      shuffledDefinitions: shuffle(definitions),
     };
-  }, [question.correctAnswer.pairs]);
+  }, [correctPairsMap]);
 
-  // Reset local state when selectedAnswer changes (new question)
+  // Reset component state when the question changes
   useEffect(() => {
-    setSelectedWord(null); // Reset selected word
-    if (!selectedAnswer) {
-      setMatchingAnswers({});
-    } else {
-      const answers = selectedAnswer.split('|').reduce((acc, pair) => {
-        const [word, definition] = pair.split(':');
-        if (word && definition) acc[word] = definition;
-        return acc;
-      }, {} as Record<string, string>);
-      setMatchingAnswers(answers);
-    }
-  }, [selectedAnswer, question.word]);
+    setUserPairs({});
+    setSelectedWord(null);
+  }, [question.word]);
 
-  const handleMatchingChange = (word: string, definition: string) => {
-    const newAnswers = { ...matchingAnswers };
-    
-    // Remove any existing mapping for this definition
-    Object.keys(newAnswers).forEach(key => {
-      if (newAnswers[key] === definition) {
-        delete newAnswers[key];
+  // Function to handle a new match or update an existing one
+  const handleMatch = (word: string, definition: string) => {
+    const newPairs = { ...userPairs };
+
+    // If this definition is already matched to another word, unmatch it first
+    Object.keys(newPairs).forEach(key => {
+      if (newPairs[key] === definition) {
+        delete newPairs[key];
       }
     });
-    
-    // Add new mapping
-    newAnswers[word] = definition;
-    setMatchingAnswers(newAnswers);
-    
-    // Convert to string format for parent component
-    const answerString = Object.entries(newAnswers)
-      .map(([w, d]) => `${w}:${d}`)
-      .join('|');
+
+    newPairs[word] = definition;
+    setUserPairs(newPairs);
+    setSelectedWord(null); // Reset selected word after matching
+
+    // Inform parent about the change
+    const answerString = Object.entries(newPairs).map(([w, d]) => `${w}:${d}`).join('|');
     onAnswerChange(answerString);
   };
 
+  // Function to undo a match
   const handleUnmatch = (word: string) => {
-    const newAnswers = { ...matchingAnswers };
-    delete newAnswers[word]; // Remove the specific word's mapping
-    setMatchingAnswers(newAnswers);
-
-    // Convert back to string format for the parent component
-    const answerString = Object.entries(newAnswers)
-      .map(([w, d]) => `${w}:${d}`)
-      .join('|');
-    onAnswerChange(answerString);
+    const newPairs = { ...userPairs };
+    delete newPairs[word];
+    setUserPairs(newPairs);
   };
 
-  if (!question.correctAnswer || !question.correctAnswer.pairs || question.correctAnswer.pairs.length === 0) {
-    return <Text>No matching pairs available</Text>;
+  // Calculate results only when `isAnswered` becomes true
+  const { correctCount, incorrectCount, overallCorrect } = useMemo(() => {
+    if (!isAnswered) return { correctCount: 0, incorrectCount: 0, overallCorrect: null };
+    
+    let correct = 0;
+    const totalPairs = correctPairsMap.size;
+
+    for (const [word, userDef] of Object.entries(userPairs)) {
+      if (correctPairsMap.get(word) === userDef) {
+        correct++;
+      }
+    }
+    const incorrect = totalPairs - correct;
+    return { correctCount: correct, incorrectCount: incorrect, overallCorrect: incorrect === 0 };
+
+  }, [isAnswered, userPairs, correctPairsMap]);
+
+  // --- STYLING --- //
+  const correctBg = useColorModeValue('green.100', 'green.800');
+  const correctBorder = useColorModeValue('green.400', 'green.600');
+  const incorrectBg = useColorModeValue('red.100', 'red.800');
+  const incorrectBorder = useColorModeValue('red.400', 'red.600');
+  const matchedBg = useColorModeValue('gray.200', 'gray.600');
+  const matchedBorder = useColorModeValue('gray.400', 'gray.500');
+  const selectedBorder = useColorModeValue('blue.400', 'blue.300');
+
+  if (!question.correctAnswer?.pairs) {
+    return <Text>No matching pairs available for this question.</Text>;
   }
 
   return (
     <VStack spacing={4} align="stretch">
-      <Text fontSize="lg" textAlign="center" mb={4}>
-        Match each word with its definition:
-      </Text>
+      <Text fontSize="lg" textAlign="center" mb={2}>Match each word with its definition:</Text>
       <Text fontSize="sm" color="gray.400" textAlign="center">
-        Click a word, then its definition. To unmatch, click the word again.
+        Click a word, then its definition. To change a match, click the word again.
       </Text>
-      
-      <Grid templateColumns="1fr 1fr" gap={6}>
+
+      <Grid templateColumns={{ base: '1fr', md: '1fr 1fr' }} gap={6}>
+        {/* Words Column */}
         <GridItem>
-          <Text fontWeight="bold" mb={3} color="blue.300">Words:</Text>
-          <Stack spacing={2} align="stretch">
+          <Text fontWeight="bold" mb={3} color={useColorModeValue('blue.600', 'blue.300')}>Words:</Text>
+          <Stack spacing={3} align="stretch">
             {shuffledWords.map((word) => {
+              const userDefinition = userPairs[word];
               const isSelected = selectedWord === word;
-              const isMatched = matchingAnswers[word];
+              let bg = undefined;
+              let borderColor = undefined;
+
+              if (isAnswered) {
+                const isCorrect = correctPairsMap.get(word) === userDefinition;
+                bg = isCorrect ? correctBg : incorrectBg;
+                borderColor = isCorrect ? correctBorder : incorrectBorder;
+              } else {
+                if (userDefinition) {
+                  bg = matchedBg;
+                  borderColor = matchedBorder;
+                }
+                if (isSelected) {
+                  borderColor = selectedBorder;
+                }
+              }
+
               return (
                 <Button
                   key={word}
-                  variant={isSelected ? "solid" : "outline"}
-                  size="md"
-                  p={3}
-                  h="100%"
-                  minHeight="4rem"
-                  bg={isMatched ? 'green.600' : isSelected ? 'blue.600' : 'slate.700'}
-                  borderColor={isMatched ? 'green.500' : isSelected ? 'blue.500' : 'slate.600'}
-                  color="white"
-                  fontSize="md"
-                  textAlign="center"
+                  variant="outline"
+                  h="auto" minH="3.5rem" p={3} whiteSpace="normal" borderWidth={2}
+                  bg={bg}
+                  borderColor={borderColor}
                   onClick={() => {
                     if (isAnswered) return;
-                    if (isMatched) {
+                    if (userDefinition) {
                       handleUnmatch(word);
                     } else {
                       setSelectedWord(isSelected ? null : word);
                     }
                   }}
                   isDisabled={isAnswered}
-                  _hover={{
-                    bg: isAnswered ? undefined : isSelected ? "blue.500" : "slate.600"
-                  }}
-                  cursor={isAnswered ? "default" : "pointer"}
                 >
                   {word}
-                  {isMatched && " ✓"}
                 </Button>
               );
             })}
           </Stack>
         </GridItem>
-        
+
+        {/* Definitions Column */}
         <GridItem>
-          <Text fontWeight="bold" mb={3} color="green.300">Definitions:</Text>
-          <Stack spacing={2} align="stretch">
+          <Text fontWeight="bold" mb={3} color={useColorModeValue('green.600', 'green.300')}>Definitions:</Text>
+          <Stack spacing={3} align="stretch">
             {shuffledDefinitions.map((definition) => {
-              const isMatched = Object.values(matchingAnswers).includes(definition);
-              const matchedWord = Object.keys(matchingAnswers).find(key => matchingAnswers[key] === definition);
-              
+              const matchedWord = Object.keys(userPairs).find(key => userPairs[key] === definition);
+              let bg = undefined;
+              let borderColor = undefined;
+
+              if (isAnswered && matchedWord) {
+                const isCorrect = correctPairsMap.get(matchedWord) === definition;
+                bg = isCorrect ? correctBg : incorrectBg;
+                borderColor = isCorrect ? correctBorder : incorrectBorder;
+              } else if (matchedWord) {
+                bg = matchedBg;
+                borderColor = matchedBorder;
+              }
+
               return (
                 <Button
                   key={definition}
                   variant="outline"
-                  size="md"
-                  p={3}
-                  h="100%"
-                  minHeight="4rem"
-                  whiteSpace="normal"
-                  height="auto"
-                  bg={isMatched ? 'green.600' : 'slate.700'}
-                  borderColor={isMatched ? 'green.500' : 'slate.600'}
-                  color="white"
+                  h="auto" minH="3.5rem" p={3} whiteSpace="normal" borderWidth={2}
+                  bg={bg}
+                  borderColor={borderColor}
                   onClick={() => {
                     if (selectedWord && !isAnswered) {
-                      handleMatchingChange(selectedWord, definition);
-                      setSelectedWord(null);
+                      handleMatch(selectedWord, definition);
                     }
                   }}
-                  isDisabled={isAnswered || !selectedWord}
-                  _hover={{
-                    bg: isAnswered || !selectedWord ? undefined : "slate.600"
-                  }}
-                  cursor={isAnswered || !selectedWord ? "default" : "pointer"}
+                  isDisabled={isAnswered || !selectedWord || !!matchedWord}
                 >
-                  <VStack spacing={1} align="stretch">
-                    <Text fontSize="sm">{definition}</Text>
-                    {isMatched && matchedWord && (
-                      <Text fontSize="xs" color="green.200">
-                        ✓ Matched with: {matchedWord}
-                      </Text>
-                    )}
-                  </VStack>
+                  {definition}
                 </Button>
               );
             })}
           </Stack>
         </GridItem>
       </Grid>
-      
-      {selectedWord && (
-        <Box p={3} bg="blue.800" borderRadius="md" textAlign="center">
-          <Text color="blue.200">
-            Selected: <strong>{selectedWord}</strong> - Now click its definition →
-          </Text>
-        </Box>
-      )}
-      
+
+      {/* Feedback Section shown after answering */}
       {isAnswered && (
-        <Box mt={4} p={4} bg="slate.800" borderRadius="md">
-          <Text fontWeight="bold" mb={2}>Correct matches:</Text>
-          {question.correctAnswer?.pairs?.map((pair, idx) => (
-            <Text key={idx} fontSize="sm" color="green.300">
-              {pair[0]} → {pair[1]}
-            </Text>
-          ))}
+        <Box mt={4} p={4} bg={useColorModeValue('gray.100', 'gray.800')} borderRadius="md">
+          <Alert status={overallCorrect ? 'success' : 'error'} borderRadius="md" mb={4}>
+            <AlertIcon />
+            <Flex justify="space-between" w="100%">
+              <Text fontWeight="bold">{overallCorrect ? 'All Correct!' : 'Review Needed'}</Text>
+              <HStack>
+                <Badge colorScheme="green">Correct: {correctCount}</Badge>
+                <Badge colorScheme="red">Incorrect: {incorrectCount}</Badge>
+              </HStack>
+            </Flex>
+          </Alert>
+          <VStack align="start" spacing={1}>
+            <Text fontWeight="bold" mb={1}>Correct Matches:</Text>
+            {question.correctAnswer.pairs.map(([word, def], idx) => (
+              <Text key={idx} fontSize="sm" color={useColorModeValue('green.700', 'green.300')}>
+                <strong>{word}</strong> → {def}
+              </Text>
+            ))}
+          </VStack>
         </Box>
       )}
     </VStack>
