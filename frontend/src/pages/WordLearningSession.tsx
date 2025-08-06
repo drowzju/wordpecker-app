@@ -58,8 +58,7 @@ export const WordLearningSession: React.FC = () => {
   const [showWordDetails, setShowWordDetails] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingWordDetails, setLoadingWordDetails] = useState(false);
-  const [generatedImage, setGeneratedImage] = useState<{ url: string; alt: string; source: 'ai' | 'stock' } | null>(null);
-  const [generatingImage, setGeneratingImage] = useState<string | null>(null);
+  
   const [wordLists, setWordLists] = useState<WordList[]>([]);
   const [selectedListId, setSelectedListId] = useState('');
   const [addingToList, setAddingToList] = useState(false);
@@ -181,40 +180,7 @@ export const WordLearningSession: React.FC = () => {
     }
   };
 
-  const handleGenerateImage = async (imageSource: 'ai' | 'stock') => {
-    if (!currentWordDetails) return;
-    
-    setGeneratingImage(imageSource);
-    try {
-      const combinedPrompt = `${currentWordDetails.word} in ${context} context`;
-      const data = await apiService.startDescriptionExercise(combinedPrompt, imageSource);
-      
-      setGeneratedImage({
-        url: data.image.url,
-        alt: data.image.alt,
-        source: imageSource
-      });
-      
-      toast({
-        title: `${imageSource === 'ai' ? 'AI Image' : 'Stock Photo'} Generated!`,
-        description: `Generated image for "${currentWordDetails.word}"`,
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
-    } catch (error) {
-      console.error(`Error generating ${imageSource} image:`, error);
-      toast({
-        title: 'Error',
-        description: `Failed to generate ${imageSource === 'ai' ? 'AI image' : 'stock photo'}`,
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      setGeneratingImage(null);
-    }
-  };
+  
 
   const handleAddToList = async () => {
     if (!currentWordDetails) {
@@ -509,57 +475,7 @@ export const WordLearningSession: React.FC = () => {
                         </Box>
                       </Box>
 
-                      {/* Visual Learning Section */}
-                      <Box>
-                        <HStack justify="space-between" align="center" mb={4}>
-                          <Text fontSize="xl" fontWeight="bold" color="purple.400">
-                            🎨 Visual Learning
-                          </Text>
-                          <HStack spacing={3}>
-                            <Button
-                              leftIcon={<FaRobot />}
-                              colorScheme="blue"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleGenerateImage('ai')}
-                              isLoading={generatingImage === 'ai'}
-                              loadingText="Generating..."
-                            >
-                              Generate AI Image
-                            </Button>
-                            
-                            <Button
-                              leftIcon={<FaCamera />}
-                              colorScheme="purple"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleGenerateImage('stock')}
-                              isLoading={generatingImage === 'stock'}
-                              loadingText="Finding..."
-                            >
-                              Find Stock Photo
-                            </Button>
-                          </HStack>
-                        </HStack>
-
-                        {generatedImage && (
-                          <Box mb={4}>
-                            <Text fontSize="sm" color="gray.400" mb={3}>
-                              Generated {generatedImage.source === 'ai' ? 'AI Image' : 'Stock Photo'} for "{currentWordDetails.word}":
-                            </Text>
-                            <Box borderRadius="lg" overflow="hidden" border="2px solid" borderColor="purple.200" shadow="md">
-                              <Image
-                                src={generatedImage.url}
-                                alt={generatedImage.alt}
-                                objectFit="contain"
-                                w="100%"
-                                maxW="400px"
-                                mx="auto"
-                              />
-                            </Box>
-                          </Box>
-                        )}
-                      </Box>
+                      
 
                       {/* Action Buttons */}
                       <HStack spacing={4} justify="center" pt={4}>
