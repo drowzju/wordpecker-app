@@ -100,6 +100,18 @@ export const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
     onAnswerChange(answerString);
   };
 
+  const handleUnmatch = (word: string) => {
+    const newAnswers = { ...matchingAnswers };
+    delete newAnswers[word]; // Remove the specific word's mapping
+    setMatchingAnswers(newAnswers);
+
+    // Convert back to string format for the parent component
+    const answerString = Object.entries(newAnswers)
+      .map(([w, d]) => `${w}:${d}`)
+      .join('|');
+    onAnswerChange(answerString);
+  };
+
   if (!question.correctAnswer || !question.correctAnswer.pairs || question.correctAnswer.pairs.length === 0) {
     return <Text>No matching pairs available</Text>;
   }
@@ -110,13 +122,13 @@ export const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
         Match each word with its definition:
       </Text>
       <Text fontSize="sm" color="gray.400" textAlign="center">
-        Step 1: Click a word. Step 2: Click its matching definition.
+        Click a word, then its definition. To unmatch, click the word again.
       </Text>
       
       <Grid templateColumns="1fr 1fr" gap={6}>
         <GridItem>
           <Text fontWeight="bold" mb={3} color="blue.300">Words:</Text>
-          <Stack spacing={2}>
+          <Stack spacing={2} align="stretch">
             {shuffledWords.map((word) => {
               const isSelected = selectedWord === word;
               const isMatched = matchingAnswers[word];
@@ -126,21 +138,26 @@ export const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
                   variant={isSelected ? "solid" : "outline"}
                   size="md"
                   p={3}
+                  h="100%"
+                  minHeight="4rem"
                   bg={isMatched ? 'green.600' : isSelected ? 'blue.600' : 'slate.700'}
                   borderColor={isMatched ? 'green.500' : isSelected ? 'blue.500' : 'slate.600'}
                   color="white"
                   fontSize="md"
                   textAlign="center"
                   onClick={() => {
-                    if (!isAnswered && !isMatched) {
+                    if (isAnswered) return;
+                    if (isMatched) {
+                      handleUnmatch(word);
+                    } else {
                       setSelectedWord(isSelected ? null : word);
                     }
                   }}
-                  isDisabled={isAnswered || !!isMatched}
+                  isDisabled={isAnswered}
                   _hover={{
-                    bg: isAnswered || isMatched ? undefined : isSelected ? "blue.500" : "slate.600"
+                    bg: isAnswered ? undefined : isSelected ? "blue.500" : "slate.600"
                   }}
-                  cursor={isAnswered || isMatched ? "default" : "pointer"}
+                  cursor={isAnswered ? "default" : "pointer"}
                 >
                   {word}
                   {isMatched && " ✓"}
@@ -152,7 +169,7 @@ export const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
         
         <GridItem>
           <Text fontWeight="bold" mb={3} color="green.300">Definitions:</Text>
-          <Stack spacing={2}>
+          <Stack spacing={2} align="stretch">
             {shuffledDefinitions.map((definition) => {
               const isMatched = Object.values(matchingAnswers).includes(definition);
               const matchedWord = Object.keys(matchingAnswers).find(key => matchingAnswers[key] === definition);
@@ -163,22 +180,24 @@ export const MatchingQuestion: React.FC<MatchingQuestionProps> = ({
                   variant="outline"
                   size="md"
                   p={3}
+                  h="100%"
+                  minHeight="4rem"
                   whiteSpace="normal"
                   height="auto"
                   bg={isMatched ? 'green.600' : 'slate.700'}
                   borderColor={isMatched ? 'green.500' : 'slate.600'}
                   color="white"
                   onClick={() => {
-                    if (selectedWord && !isAnswered && !isMatched) {
+                    if (selectedWord && !isAnswered) {
                       handleMatchingChange(selectedWord, definition);
                       setSelectedWord(null);
                     }
                   }}
-                  isDisabled={isAnswered || isMatched || !selectedWord}
+                  isDisabled={isAnswered || !selectedWord}
                   _hover={{
-                    bg: isAnswered || isMatched || !selectedWord ? undefined : "slate.600"
+                    bg: isAnswered || !selectedWord ? undefined : "slate.600"
                   }}
-                  cursor={isAnswered || isMatched || !selectedWord ? "default" : "pointer"}
+                  cursor={isAnswered || !selectedWord ? "default" : "pointer"}
                 >
                   <VStack spacing={1} align="stretch">
                     <Text fontSize="sm">{definition}</Text>
