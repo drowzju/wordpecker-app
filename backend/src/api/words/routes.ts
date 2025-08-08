@@ -79,7 +79,7 @@ router.post('/:listId/words', validate(addWordSchema), async (req, res) => {
 router.get('/:listId/words', validate(listIdSchema), async (req, res) => {
   try {
     const { listId } = req.params;
-    const words = await Word.find({ 'ownedByLists.listId': listId }).lean();
+    const words = await Word.find({ 'ownedByLists.listId': listId }).sort({ created_at: -1 }).lean();
     res.json(words.map(word => ({ ...transformWord(word as IWord, listId), _id: word._id })));
   } catch (error) {
     res.status(500).json({ message: 'Internal server error' });
