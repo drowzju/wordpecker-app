@@ -3,7 +3,7 @@ import path from 'path';
 import cron from 'node-cron';
 
 const CACHE_DIR = path.join(process.cwd(), 'audio-cache');
-const MAX_AGE_DAYS = 7; // 7 days
+const MAX_AGE_DAYS = 30; // 30 days
 
 /**
  * Deletes cached audio files older than MAX_AGE_DAYS.
