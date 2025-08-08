@@ -3,7 +3,6 @@ import {
   Button, 
   Text, 
   Flex, 
- 
   IconButton, 
   useDisclosure, 
   Container, 
@@ -29,21 +28,16 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { Word, WordList } from '../types';
 import { ArrowBackIcon, DeleteIcon } from '@chakra-ui/icons';
-import { FaGraduationCap, FaGamepad, FaPlus, FaBookOpen, FaMicrophone } from 'react-icons/fa';
+import { FaGraduationCap, FaGamepad, FaPlus, FaBookOpen, FaDownload } from 'react-icons/fa';
 import { GiTreeBranch } from 'react-icons/gi';
 import { AddWordModal } from '../components/AddWordModal';
 import { ProgressIndicator, OverallProgress } from '../components/ProgressIndicator';
-// Voice agent modal component removed - now using dedicated page
 import { apiService } from '../services/api';
 import { UserPreferences } from '../types';
 
-// Animation keyframes removed for build compatibility
-
 // Dynamic color generator
 const generateColor = (word: string) => {
-  // Generate a hue based on the word's characters
   const hue = word.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360;
-  // Use fixed saturation and lightness for consistency
   return `hsl(${hue}, 70%, 25%)`;
 };
 
@@ -81,14 +75,11 @@ export const ListDetail = () => {
     onClose: onReadingModalClose 
   } = useDisclosure();
 
-  // Voice agent modal state removed - now using dedicated page
-
   useEffect(() => {
     const fetchListDetails = async () => {
       if (!id) return;
       
       try {
-        // Fetch list details, words, and user preferences in parallel
         const [listData, wordsData, preferencesData] = await Promise.all([
           apiService.getList(id),
           apiService.getWords(id),
@@ -192,7 +183,6 @@ export const ListDetail = () => {
     try {
       const reading = await apiService.generateLightReading(id, lightReadingLevel);
       
-      // Navigate to a new reading page with the generated content
       navigate(`/reading/${id}`, { 
         state: { 
           reading, 
@@ -214,6 +204,63 @@ export const ListDetail = () => {
     } finally {
       setGeneratingReading(false);
     }
+  };
+
+  const handleExportList = () => {
+    if (!list || !userPreferences) {
+      toast({
+        title: 'Cannot export list',
+        description: 'List data is not fully loaded yet.',
+        status: 'warning',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    // 1. Gather and structure the data
+    const exportData = {
+      words: words.map(({ id, value, meaning }) => ({ id, value, meaning })),
+      context: list.context || '',
+      // Assumes exerciseTypes is an object like { "multiple-choice": true, ... }
+      // Extracts the keys for the enabled exercise types.
+      exerciseTypes: userPreferences.exerciseTypes 
+        ? Object.entries(userPreferences.exerciseTypes)
+            .filter(([, isEnabled]) => isEnabled)
+            .map(([key]) => key)
+        : [],
+      baseLanguage: userPreferences.baseLanguage || 'en',
+      targetLanguage: userPreferences.targetLanguage || 'es',
+    };
+
+    // 2. Convert the object to a formatted JSON string
+    const jsonString = JSON.stringify(exportData, null, 2);
+
+    // 3. Create a Blob from the JSON string
+    const blob = new Blob([jsonString], { type: 'application/json' });
+
+    // 4. Create a temporary URL for the Blob
+    const url = URL.createObjectURL(blob);
+
+    // 5. Create a temporary anchor element to trigger the download
+    const link = document.createElement('a');
+    link.href = url;
+    const fileName = `${list.name.replace(/\s+/g, '_').toLowerCase()}_export.json`;
+    link.download = fileName;
+    document.body.appendChild(link);
+    
+    // 6. Trigger the download and clean up
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: 'List exported successfully!',
+      description: `Saved as ${fileName}`,
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    });
   };
 
   if (isLoading) {
@@ -296,7 +343,6 @@ export const ListDetail = () => {
           />
         </Flex>
 
-        {/* Overall Progress Section */}
         {words.length > 0 && (
           <Box mb={6}>
             <OverallProgress words={words} size="md" />
@@ -323,9 +369,7 @@ export const ListDetail = () => {
               variant="ghost" 
               leftIcon={<FaGraduationCap />}
               colorScheme="green"
-              _hover={{ 
-                transform: 'translateY(-2px)',
-              }}
+              _hover={{ transform: 'translateY(-2px)' }}
               transition="all 0.2s"
               size="lg"
               isDisabled={words.length === 0}
@@ -337,9 +381,7 @@ export const ListDetail = () => {
               variant="ghost"
               leftIcon={<FaGamepad />}
               colorScheme="orange"
-              _hover={{ 
-                transform: 'translateY(-2px)',
-              }}
+              _hover={{ transform: 'translateY(-2px)' }}
               transition="all 0.2s"
               size="lg"
               isDisabled={words.length === 0}
@@ -351,9 +393,7 @@ export const ListDetail = () => {
               variant="ghost"
               leftIcon={<FaBookOpen />}
               colorScheme="purple"
-              _hover={{ 
-                transform: 'translateY(-2px)',
-              }}
+              _hover={{ transform: 'translateY(-2px)' }}
               transition="all 0.2s"
               size="lg"
               isDisabled={words.length === 0}
@@ -366,14 +406,24 @@ export const ListDetail = () => {
               variant="solid"
               colorScheme="green"
               leftIcon={<FaPlus />}
-              _hover={{ 
-                transform: 'translateY(-2px)',
-              }}
+              _hover={{ transform: 'translateY(-2px)' }}
               transition="all 0.2s"
               size="lg"
               onClick={onOpen}
             >
               Add Word
+            </Button>
+            <Button
+              variant="outline"
+              colorScheme="blue"
+              leftIcon={<FaDownload />}
+              _hover={{ transform: 'translateY(-2px)' }}
+              transition="all 0.2s"
+              size="lg"
+              onClick={handleExportList}
+              isDisabled={!list || !userPreferences}
+            >
+              Export
             </Button>
           </Flex>
         </Flex>
@@ -410,9 +460,7 @@ export const ListDetail = () => {
                 leftIcon={<FaPlus />}
                 onClick={onOpen}
                 size="lg"
-                _hover={{
-                  transform: 'translateY(-2px)',
-                }}
+                _hover={{ transform: 'translateY(-2px)' }}
                 transition="all 0.2s"
               >
                 Add Your First Word
@@ -454,7 +502,6 @@ export const ListDetail = () => {
                         {word.value}
                       </Text>
                       
-                      {/* Progress Indicator */}
                       <Box mb={selectedWord === word.id ? 3 : 2}>
                         <ProgressIndicator 
                           learnedPoint={word.learnedPoint || 0} 
@@ -496,9 +543,7 @@ export const ListDetail = () => {
                           e.stopPropagation();
                           handleDeleteWord(word.id);
                         }}
-                        _hover={{
-                          transform: 'scale(1.1)',
-                        }}
+                        _hover={{ transform: 'scale(1.1)' }}
                         transition="all 0.2s"
                       />
                     </Box>
@@ -516,7 +561,6 @@ export const ListDetail = () => {
           listName={list?.name || ''}
         />
 
-        {/* Light Reading Level Selection Modal */}
         <Modal isOpen={isReadingModalOpen} onClose={onReadingModalClose} size="md">
           <ModalOverlay />
           <ModalContent>
@@ -574,9 +618,7 @@ export const ListDetail = () => {
             </ModalFooter>
           </ModalContent>
         </Modal>
-
-        {/* Voice Agent Modal removed - now using dedicated page at /voice-chat/:listId */}
       </MotionBox>
     </Container>
   );
-}; 
+};
