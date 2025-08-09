@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Router, Request, Response } from 'express';
 import { validate } from 'echt';
 import { WordList } from '../lists/model';
@@ -6,6 +7,7 @@ import { UserPreferences } from '../preferences/model';
 import { QuestionType } from '../../types';
 import { learnAgentService } from './agent-service';
 import { getUserLanguages } from '../../utils/getUserLanguages';
+import { localExerciseService } from './local-exercise-service';
 import { listIdSchema } from './schemas';
 
 const router = Router();
@@ -100,6 +102,19 @@ router.post('/:listId/more', validate(listIdSchema), async (req, res) => {
     res.json({ exercises });
   } catch (error) {
     res.status(500).json({ message: 'Error getting more exercises' });
+  }
+});
+
+router.post('/:listId/start-local', validate(listIdSchema), async (req, res) => {
+  try {
+    const { listId } = req.params;
+    const exercises = await localExerciseService.getExercisesFromLocal(listId);
+
+    res.json({ exercises });
+
+  } catch (error) {
+    console.error('Error starting local learning session:', error);
+    res.status(500).json({ message: 'Error starting local learning session' });
   }
 });
 

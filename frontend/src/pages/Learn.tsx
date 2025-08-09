@@ -44,7 +44,7 @@ const MotionBox = motion(Box);
 export const Learn = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { state } = useLocation();
+  const { state } = useLocation() as { state: { list: WordList | null, mode: 'ai' | 'local' } };
   const toast = useToast();
   const hasInitializedRef = useRef(false);
   const isMountedRef = useRef(false);
@@ -95,16 +95,31 @@ export const Learn = () => {
       try {
         setIsLoading(true);
         
-        // Start learning session
-        const response = await apiService.startLearning(id);
-        if (response && response.exercises) {
+        const mode = state?.mode || 'ai';
+        let response;
+
+        if (mode === 'local') {
+          response = await apiService.startLocalLearning(id);
+        } else {
+          response = await apiService.startLearning(id);
+        }
+
+        if (response && response.exercises && response.exercises.length > 0) {
           setExercises(response.exercises);
           const service = new SessionService(response.exercises);
           setSessionService(service);
           setSessionProgress(service.getCurrentProgress());
           hasInitializedRef.current = true;
         } else {
-          throw new Error('Invalid response from server');
+          toast({
+            title: 'No Exercises Found',
+            description: 'There are no exercises in the local library for this list. Try AI mode instead.',
+            status: 'info',
+            duration: 7000,
+            isClosable: true,
+          });
+          navigate(`/lists/${id}`);
+          return;
         }
       } catch (error: any) {
         console.error('Error initializing learning session:', error);

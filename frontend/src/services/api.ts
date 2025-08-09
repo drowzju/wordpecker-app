@@ -81,6 +81,8 @@ export const apiService = {
   // Learning
   startLearning: (listId: string): ApiResponse<LearnStartResponse> => 
     api.post(`/api/learn/${listId}/start`),
+  startLocalLearning: (listId: string): ApiResponse<LearnStartResponse> =>
+    api.post(`/api/learn/${listId}/start-local`),
     async getExercises(listId: string): Promise<any> {
     const response = await api.get(`/learn/${listId}/exercises`);
     return response.data;

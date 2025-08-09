@@ -34,6 +34,7 @@ import { AddWordModal } from '../components/AddWordModal';
 import { ProgressIndicator, OverallProgress } from '../components/ProgressIndicator';
 import { apiService } from '../services/api';
 import { UserPreferences } from '../types';
+import { Switch } from '@chakra-ui/react';
 
 // Dynamic color generator
 const generateColor = (word: string) => {
@@ -68,6 +69,7 @@ export const ListDetail = () => {
   const [lightReadingLevel, setLightReadingLevel] = useState<'beginner' | 'intermediate' | 'advanced'>('intermediate');
   const [generatingReading, setGeneratingReading] = useState(false);
   const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
+  const [exerciseMode, setExerciseMode] = useState<'ai' | 'local'>('ai');
   
   const { 
     isOpen: isReadingModalOpen, 
@@ -441,7 +443,13 @@ export const ListDetail = () => {
               </Text>
             )}
           </Box>
-          <Flex gap={3} flexWrap="wrap" justify={{ base: 'center', md: 'flex-end' }}>
+          <Flex gap={3} flexWrap="wrap" justify={{ base: 'center', md: 'flex-end' }} alignItems="center">
+            <FormControl display="flex" alignItems="center" w="auto">
+              <FormLabel htmlFor="exercise-mode" mb="0" mr={2} whiteSpace="nowrap">
+                Use Local Exercises?
+              </FormLabel>
+              <Switch id="exercise-mode" isChecked={exerciseMode === 'local'} onChange={() => setExerciseMode(prev => prev === 'ai' ? 'local' : 'ai')} />
+            </FormControl>
             <Button 
               variant="ghost" 
               leftIcon={<FaGraduationCap />}
@@ -450,7 +458,7 @@ export const ListDetail = () => {
               transition="all 0.2s"
               size="lg"
               isDisabled={words.length === 0}
-              onClick={() => navigate(`/learn/${list!.id}`, { state: { list } })}
+              onClick={() => navigate(`/learn/${list!.id}`, { state: { list, mode: exerciseMode } })}
             >
               Learn
             </Button>
