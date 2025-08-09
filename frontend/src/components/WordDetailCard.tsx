@@ -64,7 +64,11 @@ export const WordDetailCard = ({ wordId, onClose }: WordDetailCardProps) => {
         <Flex align="center">
           <Heading as="h3" size="lg" color="cyan.300">{details.value}</Heading>
           {details.phonetic && <Text fontSize="lg" color="gray.400" ml={4}>[{details.phonetic}]</Text>}
-          <PronunciationButton word={details.value} />
+          <PronunciationButton
+            text={details.value}
+            type="word"
+            audioUrl={details.dictionary?.[0]?.phonetics?.[0]?.audio}
+          />
         </Flex>
         
         {details.definition && (
