@@ -120,6 +120,7 @@ export interface SentenceExample {
 
 export interface Exercise {
   word: string;
+  wordId?: string;
   type: 'multiple_choice' | 'fill_blank' | 'matching' | 'true_false' | 'sentence_completion';
   question: string;
   options: string[] | null;

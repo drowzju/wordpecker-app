@@ -35,7 +35,16 @@ Create exactly ${words.length} exercises (one per word).`;
     }
     console.log('LearnAgentService: jsonString after extraction:', jsonString);
     const result = JSON.parse(jsonString) as ExerciseResultType;
-    return result.exercises;
+
+    const exercisesWithIds = result.exercises.map(exercise => {
+      const originalWord = words.find(w => w.value.toLowerCase() === exercise.word.toLowerCase());
+      return {
+        ...exercise,
+        wordId: originalWord ? originalWord.id : null
+      };
+    });
+
+    return exercisesWithIds;
   }
 }
 

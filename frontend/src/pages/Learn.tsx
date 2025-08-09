@@ -21,7 +21,13 @@ import {
   StatHelpText,
   SimpleGrid,
   Icon,
-  useColorModeValue
+  useColorModeValue,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
 } from '@chakra-ui/react';
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
@@ -32,6 +38,7 @@ import { apiService } from '../services/api';
 import { QuestionRenderer } from '../components/QuestionRenderer';
 import { SessionService } from '../services/sessionService';
 import { validateAnswer } from '../utils/answerValidation';
+import { WordDetailCard } from '../components/WordDetailCard';
 
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
@@ -60,6 +67,8 @@ export const Learn = () => {
   const [sessionProgress, setSessionProgress] = useState<any>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [actualCorrectness, setActualCorrectness] = useState<boolean | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedWordIdForDetail, setSelectedWordIdForDetail] = useState<string | null>(null);
 
   useEffect(() => {
     if (isMountedRef.current) return;
@@ -195,6 +204,12 @@ export const Learn = () => {
         sessionService.answerQuestion(selectedAnswer, exercise, isValid);
         setSessionProgress(sessionService.getCurrentProgress());
       }
+
+      if (!isValid && exercise.wordId) {
+        setSelectedWordIdForDetail(exercise.wordId);
+        setIsDetailModalOpen(true);
+      }
+
     } catch (error) {
       console.error('Error validating answer:', error);
       // Fallback to normal validation
@@ -205,6 +220,11 @@ export const Learn = () => {
       if (sessionService) {
         sessionService.answerQuestion(selectedAnswer, exercise, fallbackCorrect);
         setSessionProgress(sessionService.getCurrentProgress());
+      }
+
+      if (!fallbackCorrect && exercise.wordId) {
+        setSelectedWordIdForDetail(exercise.wordId);
+        setIsDetailModalOpen(true);
       }
     } finally {
       setIsValidating(false);
@@ -534,6 +554,21 @@ export const Learn = () => {
           )}
         </Flex>
       </MotionBox>
+
+      <Modal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} isCentered>
+        <ModalOverlay />
+        <ModalContent bg="gray.800" color="white">
+          <ModalHeader>Word Details</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            {selectedWordIdForDetail && (
+              <WordDetailCard 
+                wordId={selectedWordIdForDetail} 
+              />
+            )}
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </MotionBox>
   );
-}; 
+};
