@@ -478,7 +478,7 @@ export const Learn = () => {
                 variant="outline"
                 colorScheme="green"
                 size="lg"
-                onClick={() => navigate(`/lists/${id}`)}
+                onClick={() => navigate(-1)}
                 _hover={{
                   transform: 'translateY(-2px)',
                   shadow: 'lg'

@@ -157,7 +157,7 @@ export const Quiz = () => {
       });
     } finally {
       setIsUpdatingPoints(false);
-      navigate(`/lists/${id}`);
+      navigate(-1);
     }
   };
 
