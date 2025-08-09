@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { validate } from 'echt';
 import { WordList, IWordList } from './model';
 import { Word } from '../words/model';
+import { Exercise } from '../learn/exerciseModel';
 import { createListSchema, listParamsSchema, updateListSchema } from './schemas';
 
 const router = Router();
@@ -84,6 +85,34 @@ router.delete('/:id', validate(listParamsSchema), async (req, res) => {
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ message: 'Error deleting list' });
+  }
+});
+
+router.post('/:id/import-exercises', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { exercises } = req.body;
+
+    if (!exercises || !Array.isArray(exercises)) {
+      return res.status(400).json({ message: 'Invalid request body: "exercises" array not found.' });
+    }
+
+    const exercisesWithListId = exercises.map(ex => ({ ...ex, listId: id }));
+
+    await Exercise.insertMany(exercisesWithListId);
+
+    res.status(201).json({
+      message: `Successfully imported and saved ${exercises.length} exercises for list ${id}.`,
+      wordCount: new Set(exercises.map((ex: any) => ex.word)).size,
+      typeCounts: exercises.reduce((acc: any, ex: any) => {
+        acc[ex.type] = (acc[ex.type] || 0) + 1;
+        return acc;
+      }, {})
+    });
+
+  } catch (error) {
+    console.error('Error importing exercises:', error);
+    res.status(500).json({ message: 'Error importing exercises' });
   }
 });
 

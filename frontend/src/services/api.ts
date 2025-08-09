@@ -81,8 +81,15 @@ export const apiService = {
   // Learning
   startLearning: (listId: string): ApiResponse<LearnStartResponse> => 
     api.post(`/api/learn/${listId}/start`),
-  getExercises: (listId: string): ApiResponse<LearnExercisesResponse> => 
-    api.post(`/api/learn/${listId}/more`),
+    async getExercises(listId: string): Promise<any> {
+    const response = await api.get(`/learn/${listId}/exercises`);
+    return response.data;
+  },
+
+  async importExercises(listId: string, exercises: any[]): Promise<any> {
+    const response = await api.post(`/api/lists/${listId}/import-exercises`, { exercises });
+    return response;
+  },
 
   // Quiz
   startQuiz: (listId: string): ApiResponse<QuizStartResponse> => 

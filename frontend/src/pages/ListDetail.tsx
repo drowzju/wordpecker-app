@@ -25,10 +25,10 @@ import {
 } from '@chakra-ui/react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Word, WordList } from '../types';
 import { ArrowBackIcon, DeleteIcon } from '@chakra-ui/icons';
-import { FaGraduationCap, FaGamepad, FaPlus, FaBookOpen, FaDownload } from 'react-icons/fa';
+import { FaGraduationCap, FaGamepad, FaPlus, FaBookOpen, FaDownload, FaUpload } from 'react-icons/fa';
 import { GiTreeBranch } from 'react-icons/gi';
 import { AddWordModal } from '../components/AddWordModal';
 import { ProgressIndicator, OverallProgress } from '../components/ProgressIndicator';
@@ -206,6 +206,60 @@ export const ListDetail = () => {
     }
   };
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const content = e.target?.result;
+        if (typeof content !== 'string') {
+          throw new Error('File content is not a string.');
+        }
+        const data = JSON.parse(content);
+
+        if (!data || !Array.isArray(data.exercises)) {
+          throw new Error('Invalid JSON format: "exercises" array not found.');
+        }
+
+        if (!id) {
+          throw new Error('No list ID found.');
+        }
+
+        const response = await apiService.importExercises(id, data.exercises);
+
+        toast({
+          title: 'Exercises Imported Successfully',
+          description: `Imported exercises for ${response.wordCount} words. Type counts: ${JSON.stringify(response.typeCounts)}`,
+          status: 'success',
+          duration: 9000,
+          isClosable: true,
+        });
+
+      } catch (error: any) {
+        console.error('Error importing file:', error);
+        toast({
+          title: 'Error Importing File',
+          description: error.message || 'Please check the file format and try again.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    };
+    reader.readAsText(file);
+
+    // Reset the file input so the same file can be selected again
+    event.target.value = '';
+  };
+
   const handleExportList = () => {
     if (!list || !userPreferences) {
       toast({
@@ -290,6 +344,13 @@ export const ListDetail = () => {
 
   return (
     <Container maxW="container.xl" py={8} px={{ base: 4, md: 8 }}>
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileImport}
+        style={{ display: 'none' }}
+        accept=".json"
+      />
       <MotionBox
         initial="hidden"
         animate="visible"
@@ -328,19 +389,35 @@ export const ListDetail = () => {
               {list.name}
             </Heading>
           </Flex>
-          <IconButton
-            aria-label="Delete list"
-            icon={<DeleteIcon />}
-            variant="ghost"
-            colorScheme="red"
-            onClick={handleDeleteList}
-            size="lg"
-            _hover={{
-              bg: 'red.900',
-              transform: 'scale(1.1)'
-            }}
-            transition="all 0.2s"
-          />
+          <Flex align="center" gap={2}>
+            <IconButton
+              aria-label="Export list"
+              icon={<FaDownload />}
+              variant="ghost"
+              colorScheme="blue"
+              onClick={handleExportList}
+              size="lg"
+              isDisabled={!list || !userPreferences}
+              _hover={{
+                bg: 'blue.900',
+                transform: 'scale(1.1)'
+              }}
+              transition="all 0.2s"
+            />
+            <IconButton
+              aria-label="Delete list"
+              icon={<DeleteIcon />}
+              variant="ghost"
+              colorScheme="red"
+              onClick={handleDeleteList}
+              size="lg"
+              _hover={{
+                bg: 'red.900',
+                transform: 'scale(1.1)'
+              }}
+              transition="all 0.2s"
+            />
+          </Flex>
         </Flex>
 
         {words.length > 0 && (
@@ -402,6 +479,17 @@ export const ListDetail = () => {
               Light Reading
             </Button>
             
+            <Button
+              variant="outline"
+              colorScheme="teal"
+              leftIcon={<FaUpload />}
+              _hover={{ transform: 'translateY(-2px)' }}
+              transition="all 0.2s"
+              size="lg"
+              onClick={handleImportClick}
+            >
+              Import Exercises
+            </Button>
             <Button 
               variant="solid"
               colorScheme="green"
@@ -412,18 +500,6 @@ export const ListDetail = () => {
               onClick={onOpen}
             >
               Add Word
-            </Button>
-            <Button
-              variant="outline"
-              colorScheme="blue"
-              leftIcon={<FaDownload />}
-              _hover={{ transform: 'translateY(-2px)' }}
-              transition="all 0.2s"
-              size="lg"
-              onClick={handleExportList}
-              isDisabled={!list || !userPreferences}
-            >
-              Export
             </Button>
           </Flex>
         </Flex>
