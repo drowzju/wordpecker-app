@@ -1,0 +1,76 @@
+[dev] QuizAgentService: jsonString after extraction: {
+[dev]   "questions": [
+[dev]     {
+[dev]       "type": "multiple_choice",
+[dev]       "word": "denote",
+[dev]       "question": "Which sentence correctly uses the word 'denote'?",
+[dev]       "options": [
+[dev]         "The red flag is often used to denote peace in many cultures.",
+[dev]         "Her tone of voice seemed to denote excitement about the news.",
+[dev]         "The artist wanted to denote the beauty of nature through his painting.",
+[dev]         "A traffic light with a green signal denotes that drivers must stop."
+[dev]       ],
+[dev]       "optionLabels": ["A", "B", "C", "D"],
+[dev]       "correctAnswer": "B",
+[dev]       "difficulty": "medium",
+[dev]       "hint": "'Denote' means to clearly represent or indicate something directly, not just imply.",
+[dev]       "feedback": "Feedback: 'Denote' means to directly indicate or represent something. Option B correctly uses it to show how tone directly signals excitement."
+[dev]     },
+[dev]     {
+[dev]       "type": "fill_blank",
+[dev]       "word": "alterego",
+[dev]       "question": "When he puts on his suit and enters the boardroom, he becomes the company's confident leader — almost like an entirely different person, his professional ____.",
+[dev]       "options": null,
+[dev]       "optionLabels": null,
+[dev]       "correctAnswer": "alterego",
+[dev]       "difficulty": "medium",
+[dev]       "hint": "This word refers to a completely different side of someone's personality, often in different situations.",
+[dev]       "feedback": "Feedback: 'Alterego' means a completely different side of someone's personality, often in different situations. In this context, it refers to the professional transformation of the person."
+[dev]     },
+[dev]     {
+[dev]       "type": "true_false",
+[dev]       "word": "profanity",
+[dev]       "question": "Profanity refers to complex or advanced vocabulary used in formal writing.",
+[dev]       "options": ["True", "False"],
+[dev]       "optionLabels": ["A", "B"],
+[dev]       "correctAnswer": "B",
+[dev]       "difficulty": "easy",
+[dev]       "hint": "Profanity is not related to complex or formal language usage.",
+[dev]       "feedback": "Feedback: 'Profanity' refers to offensive or inappropriate language, not complex or advanced vocabulary. Therefore, the statement is false."
+[dev]     },
+[dev]     {
+[dev]       "type": "matching",
+[dev]       "word": "variant",
+[dev]       "question": "Match each term with its correct definition.",
+[dev]       "options": ["variant", "dialect", "accent", "idiom"],
+[dev]       "optionLabels": [
+[dev]         "A way of speaking that includes regionally specific phrases or expressions.",
+[dev]         "A unique pronunciation pattern associated with a speaker's regional or social background.",
+[dev]         "A version that differs from the standard or typical form in some way.",
+[dev]         "A phrase whose meaning cannot be determined from the individual words used."
+[dev]       ],
+[dev]       "correctAnswer": {
+[dev]         "pairs": [
+[dev]           ["variant", "A version that differs from the standard or typical form in some way."],
+[dev]           ["dialect", "A way of speaking that includes regionally specific phrases or expressions."],
+[dev]           ["accent", "A unique pronunciation pattern associated with a speaker's regional or social background."],
+[dev]           ["idiom", "A phrase whose meaning cannot be determined from the individual words used."]
+[dev]         ]
+[dev]       },
+[dev]       "difficulty": "hard",
+[dev]       "hint": "Think about how each term relates to language variation and uniqueness.",
+[dev]       "feedback": "Feedback: 'Variant' means a version that differs from the standard form. The other terms also relate to language differences, but each has its own distinct meaning."
+[dev]     },
+[dev]     {
+[dev]       "type": "sentence_completion",
+[dev]       "word": "obscenity",
+[dev]       "question": "The radio station bleeped out the celebrity's remarks because they were considered inappropriate and bordered on ___.",
+[dev]       "options": ["obscenity", "elegance", "politeness", "comedy"],
+[dev]       "optionLabels": ["A", "B", "C", "D"],
+[dev]       "correctAnswer": "A",
+[dev]       "difficulty": "easy",
+[dev]       "hint": "This word refers to offensive or morally inappropriate language or behavior.",
+[dev]       "feedback": "Feedback: 'Obscenity' refers to offensive or inappropriate content, which fits the context of the sentence where the remarks were censored."
+[dev]     }
+[dev]   ]
+[dev] }
