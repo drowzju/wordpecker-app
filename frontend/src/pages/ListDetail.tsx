@@ -215,50 +215,79 @@ export const ListDetail = () => {
   };
 
   const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const content = e.target?.result;
-        if (typeof content !== 'string') {
-          throw new Error('File content is not a string.');
-        }
-        const data = JSON.parse(content);
+    const toastId = "import-toast";
+    toast({
+      id: toastId,
+      title: 'Importing Files...',
+      description: `Processing ${files.length} file(s).`,
+      status: 'info',
+      duration: null, // Persist until manually closed or updated
+      isClosable: true,
+    });
 
-        if (!data || !Array.isArray(data.exercises)) {
-          throw new Error('Invalid JSON format: "exercises" array not found.');
-        }
+    const readFileAsPromise = (file: File): Promise<any[]> => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const content = e.target?.result;
+            if (typeof content !== 'string') {
+              return reject(new Error(`File content in ${file.name} is not a string.`));
+            }
+            const data = JSON.parse(content);
+            if (!data || !Array.isArray(data.exercises)) {
+              return reject(new Error(`Invalid JSON format in ${file.name}: "exercises" array not found.`));
+            }
+            resolve(data.exercises);
+          } catch (error) {
+            reject(new Error(`Error parsing ${file.name}: ${error.message}`));
+          }
+        };
+        reader.onerror = (error) => reject(error);
+        reader.readAsText(file);
+      });
+    };
 
-        if (!id) {
-          throw new Error('No list ID found.');
-        }
+    try {
+      const fileReadPromises = Array.from(files).map(readFileAsPromise);
+      const exercisesFromAllFiles = await Promise.all(fileReadPromises);
+      const allExercises = exercisesFromAllFiles.flat();
 
-        const response = await apiService.importExercises(id, data.exercises);
+      if (!id) {
+        throw new Error('No list ID found.');
+      }
 
-        toast({
+      if (allExercises.length > 0) {
+        const response = await apiService.importExercises(id, allExercises);
+        toast.update(toastId, {
           title: 'Exercises Imported Successfully',
-          description: `Imported exercises for ${response.wordCount} words. Type counts: ${JSON.stringify(response.typeCounts)}`,
+          description: `Imported ${allExercises.length} exercises for ${response.wordCount} words from ${files.length} files. Type counts: ${JSON.stringify(response.typeCounts)}`,
           status: 'success',
           duration: 9000,
-          isClosable: true,
         });
-
-      } catch (error: any) {
-        console.error('Error importing file:', error);
-        toast({
-          title: 'Error Importing File',
-          description: error.message || 'Please check the file format and try again.',
-          status: 'error',
+      } else {
+        toast.update(toastId, {
+          title: 'No Exercises Found',
+          description: 'The selected files did not contain any valid exercises.',
+          status: 'warning',
           duration: 5000,
-          isClosable: true,
         });
       }
-    };
-    reader.readAsText(file);
 
-    // Reset the file input so the same file can be selected again
+    } catch (error: any) {
+      console.error('Error importing files:', error);
+      toast.update(toastId, {
+        title: 'Error Importing Files',
+        description: error.message || 'Please check the file formats and try again.',
+        status: 'error',
+        duration: 9000,
+      });
+    }
+
+    // Reset the file input so the same files can be selected again
     event.target.value = '';
   };
 
@@ -352,6 +381,7 @@ export const ListDetail = () => {
         onChange={handleFileImport}
         style={{ display: 'none' }}
         accept=".json"
+        multiple
       />
       <MotionBox
         initial="hidden"
