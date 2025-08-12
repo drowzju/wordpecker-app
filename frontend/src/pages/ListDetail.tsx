@@ -481,7 +481,7 @@ export const ListDetail = () => {
         transition={{ duration: 0.5 }}
         p={4}
       >
-        <Flex mb={6} justify="space-between" align="center">
+        <Flex mb={6} justify="space-between" align="center" flexWrap="wrap" gap={4}>
           <Flex align="center" gap={2}>
             <IconButton
               aria-label="Go back"
@@ -512,34 +512,50 @@ export const ListDetail = () => {
               {list.name}
             </Heading>
           </Flex>
-          <Flex align="center" gap={2}>
-            <IconButton
-              aria-label="Export list"
-              icon={<FaDownload />}
+          <Flex align="center" gap={2} flexWrap="wrap" justify={{ base: 'center', md: 'flex-end' }}>
+            <FormControl display="flex" alignItems="center" w="auto" mr={2}>
+              <FormLabel htmlFor="exercise-mode" mb="0" mr={2} whiteSpace="nowrap">
+                Use Local
+              </FormLabel>
+              <Switch id="exercise-mode" isChecked={exerciseMode === 'local'} onChange={() => setExerciseMode(prev => prev === 'ai' ? 'local' : 'ai')} />
+            </FormControl>
+            <Button
+              variant="ghost"
+              colorScheme="green"
+              leftIcon={<FaUpload />}
+              onClick={handleImportClick}
+              size="md"
+            >
+              Import Ex.
+            </Button>
+            <Button
+              variant="ghost"
+              colorScheme="orange"
+              leftIcon={<FaUpload />}
+              onClick={handleQuizImportClick}
+              size="md"
+            >
+              Import Qz.
+            </Button>
+            <Button
               variant="ghost"
               colorScheme="blue"
+              leftIcon={<FaDownload />}
               onClick={handleExportList}
-              size="lg"
               isDisabled={!list || !userPreferences}
-              _hover={{
-                bg: 'blue.900',
-                transform: 'scale(1.1)'
-              }}
-              transition="all 0.2s"
-            />
-            <IconButton
-              aria-label="Delete list"
-              icon={<DeleteIcon />}
+              size="md"
+            >
+              Export
+            </Button>
+            <Button
               variant="ghost"
               colorScheme="red"
+              leftIcon={<DeleteIcon />}
               onClick={handleDeleteList}
-              size="lg"
-              _hover={{
-                bg: 'red.900',
-                transform: 'scale(1.1)'
-              }}
-              transition="all 0.2s"
-            />
+              size="md"
+            >
+              Delete
+            </Button>
           </Flex>
         </Flex>
 
@@ -564,87 +580,55 @@ export const ListDetail = () => {
               </Text>
             )}
           </Box>
-          <VStack gap={3} alignItems={{ base: 'center', md: 'flex-end' }}>
-            <Flex gap={3} flexWrap="wrap" justify={{ base: 'center', md: 'flex-end' }} alignItems="center">
-              <Button 
-                variant="ghost" 
-                leftIcon={<FaGraduationCap />}
-                colorScheme="green"
-                _hover={{ transform: 'translateY(-2px)' }}
-                transition="all 0.2s"
-                size="lg"
-                isDisabled={words.length === 0}
-                onClick={() => navigate(`/learn/${list!.id}`, { state: { list, mode: exerciseMode } })}
-              >
-                Learn
-              </Button>
-              <Button 
-                variant="ghost"
-                leftIcon={<FaGamepad />}
-                colorScheme="orange"
-                _hover={{ transform: 'translateY(-2px)' }}
-                transition="all 0.2s"
-                size="lg"
-                isDisabled={words.length === 0}
-                onClick={() => navigate(`/quiz/${list!.id}`, { state: { list } })}
-              >
-                Quiz
-              </Button>
-              <Button 
-                variant="ghost"
-                leftIcon={<FaBookOpen />}
-                colorScheme="purple"
-                _hover={{ transform: 'translateY(-2px)' }}
-                transition="all 0.2s"
-                size="lg"
-                isDisabled={words.length === 0}
-                onClick={onReadingModalOpen}
-              >
-                Light Reading
-              </Button>
-              <Button 
-                variant="solid"
-                colorScheme="green"
-                leftIcon={<FaPlus />}
-                _hover={{ transform: 'translateY(-2px)' }}
-                transition="all 0.2s"
-                size="lg"
-                onClick={onOpen}
-              >
-                Add Word
-              </Button>
-            </Flex>
-            <Flex gap={3} flexWrap="wrap" justify={{ base: 'center', md: 'flex-end' }} alignItems="center">
-              <FormControl display="flex" alignItems="center" w="auto">
-                <FormLabel htmlFor="exercise-mode" mb="0" mr={2} whiteSpace="nowrap">
-                  Use Local Exercises?
-                </FormLabel>
-                <Switch id="exercise-mode" isChecked={exerciseMode === 'local'} onChange={() => setExerciseMode(prev => prev === 'ai' ? 'local' : 'ai')} />
-              </FormControl>
-              <Button
-                variant="outline"
-                colorScheme="teal"
-                leftIcon={<FaUpload />}
-                _hover={{ transform: 'translateY(-2px)' }}
-                transition="all 0.2s"
-                size="lg"
-                onClick={handleImportClick}
-              >
-                Import Exercises
-              </Button>
-              <Button
-                variant="outline"
-                colorScheme="blue"
-                leftIcon={<FaUpload />}
-                _hover={{ transform: 'translateY(-2px)' }}
-                transition="all 0.2s"
-                size="lg"
-                onClick={handleQuizImportClick}
-              >
-                Import Quizzes
-              </Button>
-            </Flex>
-          </VStack>
+          <Flex gap={3} flexWrap="wrap" justify={{ base: 'center', md: 'flex-end' }} alignItems="center">
+            <Button 
+              variant="ghost" 
+              leftIcon={<FaGraduationCap />}
+              colorScheme="green"
+              _hover={{ transform: 'translateY(-2px)' }}
+              transition="all 0.2s"
+              size="lg"
+              isDisabled={words.length === 0}
+              onClick={() => navigate(`/learn/${list!.id}`, { state: { list, mode: exerciseMode } })}
+            >
+              Learn
+            </Button>
+            <Button 
+              variant="ghost"
+              leftIcon={<FaGamepad />}
+              colorScheme="orange"
+              _hover={{ transform: 'translateY(-2px)' }}
+              transition="all 0.2s"
+              size="lg"
+              isDisabled={words.length === 0}
+              onClick={() => navigate(`/quiz/${list!.id}`, { state: { list } })}
+            >
+              Quiz
+            </Button>
+            <Button 
+              variant="ghost"
+              leftIcon={<FaBookOpen />}
+              colorScheme="purple"
+              _hover={{ transform: 'translateY(-2px)' }}
+              transition="all 0.2s"
+              size="lg"
+              isDisabled={words.length === 0}
+              onClick={onReadingModalOpen}
+            >
+              Light Reading
+            </Button>
+            <Button 
+              variant="solid"
+              colorScheme="green"
+              leftIcon={<FaPlus />}
+              _hover={{ transform: 'translateY(-2px)' }}
+              transition="all 0.2s"
+              size="lg"
+              onClick={onOpen}
+            >
+              Add Word
+            </Button>
+          </Flex>
         </Flex>
 
         <Box 
