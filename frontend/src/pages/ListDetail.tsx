@@ -21,7 +21,8 @@ import {
   Select,
   FormControl,
   FormLabel,
-  VStack
+  VStack,
+  SimpleGrid
 } from '@chakra-ui/react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -670,7 +671,7 @@ export const ListDetail = () => {
               </Button>
             </Flex>
           ) : (
-            <Box p={4}>
+            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} p={4}>
               {words.map((word: Word, index: number) => (
                 <MotionBox
                   key={word.id}
@@ -688,7 +689,6 @@ export const ListDetail = () => {
                   }}
                   onClick={() => navigate(`/words/${word.id}`)}
                   p={4}
-                  mb={2}
                   borderRadius="lg"
                   bg={generateColor(word.value)}
                   position="relative"
@@ -753,7 +753,7 @@ export const ListDetail = () => {
                   </Flex>
                 </MotionBox>
               ))}
-            </Box>
+            </SimpleGrid>
           )}
         </Box>
 
