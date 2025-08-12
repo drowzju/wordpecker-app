@@ -3,6 +3,7 @@ import { validate } from 'echt';
 import { WordList, IWordList } from './model';
 import { Word } from '../words/model';
 import { Exercise } from '../learn/exerciseModel';
+import { Quiz } from '../quiz/quizModel';
 import { createListSchema, listParamsSchema, updateListSchema } from './schemas';
 
 const router = Router();
@@ -113,6 +114,34 @@ router.post('/:id/import-exercises', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error importing exercises:', error);
     res.status(500).json({ message: 'Error importing exercises' });
+  }
+});
+
+router.post('/:id/import-quizzes', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { quizzes } = req.body;
+
+    if (!quizzes || !Array.isArray(quizzes)) {
+      return res.status(400).json({ message: 'Invalid request body: "quizzes" array not found.' });
+    }
+
+    const quizzesWithListId = quizzes.map(ex => ({ ...ex, listId: id }));
+
+    await Quiz.insertMany(quizzesWithListId);
+
+    res.status(201).json({
+      message: `Successfully imported and saved ${quizzes.length} quizzes for list ${id}.`,
+      wordCount: new Set(quizzes.map((ex: any) => ex.word)).size,
+      typeCounts: quizzes.reduce((acc: any, ex: any) => {
+        acc[ex.type] = (acc[ex.type] || 0) + 1;
+        return acc;
+      }, {})
+    });
+
+  } catch (error) {
+    console.error('Error importing quizzes:', error);
+    res.status(500).json({ message: 'Error importing quizzes' });
   }
 });
 

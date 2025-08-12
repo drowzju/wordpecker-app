@@ -93,6 +93,11 @@ export const apiService = {
     return response;
   },
 
+  async importQuizzes(listId: string, quizzes: any[]): Promise<any> {
+    const response = await api.post(`/api/lists/${listId}/import-quizzes`, { quizzes });
+    return response;
+  },
+
   // Quiz
   startQuiz: (listId: string): ApiResponse<QuizStartResponse> => 
     api.post(`/api/quiz/${listId}/start`),

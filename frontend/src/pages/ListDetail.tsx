@@ -291,6 +291,89 @@ export const ListDetail = () => {
     event.target.value = '';
   };
 
+  const quizFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleQuizImportClick = () => {
+    quizFileInputRef.current?.click();
+  };
+
+  const handleQuizFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    const toastId = "import-toast";
+    toast({
+      id: toastId,
+      title: 'Importing Files...',
+      description: `Processing ${files.length} file(s).`,
+      status: 'info',
+      duration: null, // Persist until manually closed or updated
+      isClosable: true,
+    });
+
+    const readFileAsPromise = (file: File): Promise<any[]> => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const content = e.target?.result;
+            if (typeof content !== 'string') {
+              return reject(new Error(`File content in ${file.name} is not a string.`));
+            }
+            const data = JSON.parse(content);
+            if (!data || !Array.isArray(data.questions)) {
+              return reject(new Error(`Invalid JSON format in ${file.name}: "questions" array not found.`));
+            }
+            resolve(data.questions);
+          } catch (error) {
+            reject(new Error(`Error parsing ${file.name}: ${error.message}`));
+          }
+        };
+        reader.onerror = (error) => reject(error);
+        reader.readAsText(file);
+      });
+    };
+
+    try {
+      const fileReadPromises = Array.from(files).map(readFileAsPromise);
+      const quizzesFromAllFiles = await Promise.all(fileReadPromises);
+      const allQuizzes = quizzesFromAllFiles.flat();
+
+      if (!id) {
+        throw new Error('No list ID found.');
+      }
+
+      if (allQuizzes.length > 0) {
+        const response = await apiService.importQuizzes(id, allQuizzes);
+        toast.update(toastId, {
+          title: 'Quizzes Imported Successfully',
+          description: `Imported ${allQuizzes.length} quizzes for ${response.wordCount} words from ${files.length} files. Type counts: ${JSON.stringify(response.typeCounts)}`,
+          status: 'success',
+          duration: 9000,
+        });
+      } else {
+        toast.update(toastId, {
+          title: 'No Quizzes Found',
+          description: 'The selected files did not contain any valid quizzes.',
+          status: 'warning',
+          duration: 5000,
+        });
+      }
+
+    } catch (error: any) {
+      console.error('Error importing files:', error);
+      toast.update(toastId, {
+        title: 'Error Importing Files',
+        description: error.message || 'Please check the file formats and try again.',
+        status: 'error',
+        duration: 9000,
+      });
+    }
+
+    // Reset the file input so the same files can be selected again
+    event.target.value = '';
+  };
+
   const handleExportList = () => {
     if (!list || !userPreferences) {
       toast({
@@ -379,6 +462,14 @@ export const ListDetail = () => {
         type="file"
         ref={fileInputRef}
         onChange={handleFileImport}
+        style={{ display: 'none' }}
+        accept=".json"
+        multiple
+      />
+      <input
+        type="file"
+        ref={quizFileInputRef}
+        onChange={handleQuizFileImport}
         style={{ display: 'none' }}
         accept=".json"
         multiple
@@ -473,73 +564,87 @@ export const ListDetail = () => {
               </Text>
             )}
           </Box>
-          <Flex gap={3} flexWrap="wrap" justify={{ base: 'center', md: 'flex-end' }} alignItems="center">
-            <FormControl display="flex" alignItems="center" w="auto">
-              <FormLabel htmlFor="exercise-mode" mb="0" mr={2} whiteSpace="nowrap">
-                Use Local Exercises?
-              </FormLabel>
-              <Switch id="exercise-mode" isChecked={exerciseMode === 'local'} onChange={() => setExerciseMode(prev => prev === 'ai' ? 'local' : 'ai')} />
-            </FormControl>
-            <Button 
-              variant="ghost" 
-              leftIcon={<FaGraduationCap />}
-              colorScheme="green"
-              _hover={{ transform: 'translateY(-2px)' }}
-              transition="all 0.2s"
-              size="lg"
-              isDisabled={words.length === 0}
-              onClick={() => navigate(`/learn/${list!.id}`, { state: { list, mode: exerciseMode } })}
-            >
-              Learn
-            </Button>
-            <Button 
-              variant="ghost"
-              leftIcon={<FaGamepad />}
-              colorScheme="orange"
-              _hover={{ transform: 'translateY(-2px)' }}
-              transition="all 0.2s"
-              size="lg"
-              isDisabled={words.length === 0}
-              onClick={() => navigate(`/quiz/${list!.id}`, { state: { list } })}
-            >
-              Quiz
-            </Button>
-            <Button 
-              variant="ghost"
-              leftIcon={<FaBookOpen />}
-              colorScheme="purple"
-              _hover={{ transform: 'translateY(-2px)' }}
-              transition="all 0.2s"
-              size="lg"
-              isDisabled={words.length === 0}
-              onClick={onReadingModalOpen}
-            >
-              Light Reading
-            </Button>
-            
-            <Button
-              variant="outline"
-              colorScheme="teal"
-              leftIcon={<FaUpload />}
-              _hover={{ transform: 'translateY(-2px)' }}
-              transition="all 0.2s"
-              size="lg"
-              onClick={handleImportClick}
-            >
-              Import Exercises
-            </Button>
-            <Button 
-              variant="solid"
-              colorScheme="green"
-              leftIcon={<FaPlus />}
-              _hover={{ transform: 'translateY(-2px)' }}
-              transition="all 0.2s"
-              size="lg"
-              onClick={onOpen}
-            >
-              Add Word
-            </Button>
-          </Flex>
+          <VStack gap={3} alignItems={{ base: 'center', md: 'flex-end' }}>
+            <Flex gap={3} flexWrap="wrap" justify={{ base: 'center', md: 'flex-end' }} alignItems="center">
+              <Button 
+                variant="ghost" 
+                leftIcon={<FaGraduationCap />}
+                colorScheme="green"
+                _hover={{ transform: 'translateY(-2px)' }}
+                transition="all 0.2s"
+                size="lg"
+                isDisabled={words.length === 0}
+                onClick={() => navigate(`/learn/${list!.id}`, { state: { list, mode: exerciseMode } })}
+              >
+                Learn
+              </Button>
+              <Button 
+                variant="ghost"
+                leftIcon={<FaGamepad />}
+                colorScheme="orange"
+                _hover={{ transform: 'translateY(-2px)' }}
+                transition="all 0.2s"
+                size="lg"
+                isDisabled={words.length === 0}
+                onClick={() => navigate(`/quiz/${list!.id}`, { state: { list } })}
+              >
+                Quiz
+              </Button>
+              <Button 
+                variant="ghost"
+                leftIcon={<FaBookOpen />}
+                colorScheme="purple"
+                _hover={{ transform: 'translateY(-2px)' }}
+                transition="all 0.2s"
+                size="lg"
+                isDisabled={words.length === 0}
+                onClick={onReadingModalOpen}
+              >
+                Light Reading
+              </Button>
+              <Button 
+                variant="solid"
+                colorScheme="green"
+                leftIcon={<FaPlus />}
+                _hover={{ transform: 'translateY(-2px)' }}
+                transition="all 0.2s"
+                size="lg"
+                onClick={onOpen}
+              >
+                Add Word
+              </Button>
+            </Flex>
+            <Flex gap={3} flexWrap="wrap" justify={{ base: 'center', md: 'flex-end' }} alignItems="center">
+              <FormControl display="flex" alignItems="center" w="auto">
+                <FormLabel htmlFor="exercise-mode" mb="0" mr={2} whiteSpace="nowrap">
+                  Use Local Exercises?
+                </FormLabel>
+                <Switch id="exercise-mode" isChecked={exerciseMode === 'local'} onChange={() => setExerciseMode(prev => prev === 'ai' ? 'local' : 'ai')} />
+              </FormControl>
+              <Button
+                variant="outline"
+                colorScheme="teal"
+                leftIcon={<FaUpload />}
+                _hover={{ transform: 'translateY(-2px)' }}
+                transition="all 0.2s"
+                size="lg"
+                onClick={handleImportClick}
+              >
+                Import Exercises
+              </Button>
+              <Button
+                variant="outline"
+                colorScheme="blue"
+                leftIcon={<FaUpload />}
+                _hover={{ transform: 'translateY(-2px)' }}
+                transition="all 0.2s"
+                size="lg"
+                onClick={handleQuizImportClick}
+              >
+                Import Quizzes
+              </Button>
+            </Flex>
+          </VStack>
         </Flex>
 
         <Box 
