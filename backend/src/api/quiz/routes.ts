@@ -5,8 +5,9 @@ import { Word } from '../words/model';
 import { UserPreferences } from '../preferences/model';
 import { QuestionType } from '../../types';
 import { quizAgentService } from './agent-service';
+import { localQuizService } from './local-quiz-service';
 import { shuffleArray } from '../../utils/arrayUtils';
-import { listIdSchema, updatePointsSchema } from './schemas';
+import { startQuizSchema, updatePointsSchema } from './schemas';
 
 const router = Router();
 
@@ -28,25 +29,36 @@ const getQuestionTypes = async (userId: string): Promise<QuestionType[]> => {
     : ['multiple_choice', 'fill_blank', 'true_false', 'sentence_completion'];
 };
 
-router.post('/:listId/start', validate(listIdSchema), async (req, res) => {
+router.post('/:listId/start', validate(startQuizSchema), async (req, res) => {
   try {
     const { listId } = req.params;
-    const [list, words] = await Promise.all([
-      WordList.findById(listId).lean(),
-      Word.find({ 'ownedByLists.listId': listId }).lean()
-    ]);
+    const { mode } = req.body; // 'ai' or 'local'
 
+    const list = await WordList.findById(listId).lean();
     if (!list) return res.status(404).json({ message: 'List not found' });
-    if (!words.length) return res.status(400).json({ message: 'List has no words' });
 
-    const transformed = transformWords(words, listId);
-    const shuffled = transformed.sort(() => Math.random() - 0.5);
-    const questionTypes = await getQuestionTypes(req.headers['user-id'] as string);
-    const questions = await quizAgentService.generateQuestions(shuffled.slice(0, 5), list.context || 'General', questionTypes);
+    let questions;
+    let total_questions = await Word.countDocuments({ 'ownedByLists.listId': listId });
+
+    if (mode === 'local') {
+      try {
+        questions = await localQuizService.getQuizzesFromLocal(listId);
+      } catch (error: any) {
+        return res.status(400).json({ message: error.message });
+      }
+    } else {
+      const words = await Word.find({ 'ownedByLists.listId': listId }).lean();
+      if (!words.length) return res.status(400).json({ message: 'List has no words' });
+
+      const transformed = transformWords(words, listId);
+      const shuffled = transformed.sort(() => Math.random() - 0.5);
+      const questionTypes = await getQuestionTypes(req.headers['user-id'] as string);
+      questions = await quizAgentService.generateQuestions(shuffled.slice(0, 5), list.context || 'General', questionTypes);
+    }
 
     res.json({ 
       questions,
-      total_questions: shuffled.length,
+      total_questions,
       list: { id: list._id.toString(), name: list.name, context: list.context }
     });
   } catch (error) {
@@ -55,21 +67,33 @@ router.post('/:listId/start', validate(listIdSchema), async (req, res) => {
   }
 });
 
-router.post('/:listId/more', validate(listIdSchema), async (req, res) => {
+router.post('/:listId/more', validate(startQuizSchema), async (req, res) => {
   try {
     const { listId } = req.params;
-    const [list, words] = await Promise.all([
-      WordList.findById(listId).lean(),
-      Word.find({ 'ownedByLists.listId': listId }).lean()
-    ]);
+    const { mode } = req.body; // 'ai' or 'local'
 
-    if (!list) return res.status(404).json({ message: 'List not found' });
-    if (!words.length) return res.status(400).json({ message: 'List has no words' });
+    let questions;
 
-    const transformed = transformWords(words, listId);
-    const selected = shuffleArray(transformed).slice(0, 5);
-    const questionTypes = await getQuestionTypes(req.headers['user-id'] as string);
-    const questions = await quizAgentService.generateQuestions(selected, list.context || 'General', questionTypes);
+    if (mode === 'local') {
+      try {
+        questions = await localQuizService.getQuizzesFromLocal(listId);
+      } catch (error: any) {
+        return res.status(400).json({ message: error.message });
+      }
+    } else {
+      const [list, words] = await Promise.all([
+        WordList.findById(listId).lean(),
+        Word.find({ 'ownedByLists.listId': listId }).lean()
+      ]);
+
+      if (!list) return res.status(404).json({ message: 'List not found' });
+      if (!words.length) return res.status(400).json({ message: 'List has no words' });
+
+      const transformed = transformWords(words, listId);
+      const selected = shuffleArray(transformed).slice(0, 5);
+      const questionTypes = await getQuestionTypes(req.headers['user-id'] as string);
+      questions = await quizAgentService.generateQuestions(selected, list.context || 'General', questionTypes);
+    }
 
     res.json({ questions });
   } catch (error) {
@@ -118,4 +142,5 @@ router.put('/:listId/learned-points', validate(updatePointsSchema), async (req, 
   }
 });
 
-export default router; 
+export default router;
+ 

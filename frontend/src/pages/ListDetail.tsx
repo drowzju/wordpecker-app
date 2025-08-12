@@ -601,7 +601,7 @@ export const ListDetail = () => {
               transition="all 0.2s"
               size="lg"
               isDisabled={words.length === 0}
-              onClick={() => navigate(`/quiz/${list!.id}`, { state: { list } })}
+              onClick={() => navigate(`/quiz/${list!.id}`, { state: { list, mode: exerciseMode } })}
             >
               Quiz
             </Button>

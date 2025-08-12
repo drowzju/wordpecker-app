@@ -99,10 +99,10 @@ export const apiService = {
   },
 
   // Quiz
-  startQuiz: (listId: string): ApiResponse<QuizStartResponse> => 
-    api.post(`/api/quiz/${listId}/start`),
-  getQuestions: (listId: string): ApiResponse<QuizQuestionsResponse> => 
-    api.post(`/api/quiz/${listId}/more`),
+  startQuiz: (listId: string, mode: 'ai' | 'local'): ApiResponse<QuizStartResponse> => 
+    api.post(`/api/quiz/${listId}/start`, { mode }),
+  getQuestions: (listId: string, mode: 'ai' | 'local'): ApiResponse<QuizQuestionsResponse> => 
+    api.post(`/api/quiz/${listId}/more`, { mode }),
   updateLearnedPoints: (listId: string, results: Array<{wordId: string, correct: boolean}>): ApiResponse<{message: string}> =>
     api.put(`/api/quiz/${listId}/learned-points`, { results }),
 

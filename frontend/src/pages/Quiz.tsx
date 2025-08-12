@@ -48,6 +48,7 @@ export const Quiz = () => {
   const toast = useToast();
   const hasInitializedRef = useRef(false);
   const isMountedRef = useRef(false);
+  const mode = state?.mode || 'ai';
   
   const [list, setList] = useState<WordList | null>(state?.list || null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -101,7 +102,7 @@ export const Quiz = () => {
         setIsLoading(true);
         
         // Start quiz session
-        const response = await apiService.startQuiz(id);
+        const response = await apiService.startQuiz(id, mode);
         if (response && response.questions && response.total_questions) {
           setQuestions(response.questions);
           setTotalQuestions(response.total_questions);
@@ -128,7 +129,7 @@ export const Quiz = () => {
     };
 
     initQuiz();
-  }, [id, navigate, toast]);
+  }, [id, navigate, toast, mode]);
   
   const updateLearnedPoints = async () => {
     if (!id || quizResults.length === 0) {
@@ -166,7 +167,7 @@ export const Quiz = () => {
     
     setIsLoading(true);
     try {
-      const response = await apiService.getQuestions(id);
+      const response = await apiService.getQuestions(id, mode);
       
       if (response && response.questions && response.questions.length > 0) {
         setQuestions(prev => [...prev, ...response.questions]);
