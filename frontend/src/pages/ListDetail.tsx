@@ -516,7 +516,7 @@ export const ListDetail = () => {
           <Flex align="center" gap={2} flexWrap="wrap" justify={{ base: 'center', md: 'flex-end' }}>
             <FormControl display="flex" alignItems="center" w="auto" mr={2}>
               <FormLabel htmlFor="exercise-mode" mb="0" mr={2} whiteSpace="nowrap">
-                Use Local
+                Local Ex.&Quiz.
               </FormLabel>
               <Switch id="exercise-mode" isChecked={exerciseMode === 'local'} onChange={() => setExerciseMode(prev => prev === 'ai' ? 'local' : 'ai')} />
             </FormControl>
@@ -527,7 +527,7 @@ export const ListDetail = () => {
               onClick={handleImportClick}
               size="md"
             >
-              Import Ex.
+              Ex.
             </Button>
             <Button
               variant="ghost"
@@ -536,7 +536,7 @@ export const ListDetail = () => {
               onClick={handleQuizImportClick}
               size="md"
             >
-              Import Qz.
+              Qz.
             </Button>
             <Button
               variant="ghost"
@@ -546,7 +546,7 @@ export const ListDetail = () => {
               isDisabled={!list || !userPreferences}
               size="md"
             >
-              Export
+              List
             </Button>
             <Button
               variant="ghost"
@@ -555,7 +555,7 @@ export const ListDetail = () => {
               onClick={handleDeleteList}
               size="md"
             >
-              Delete
+              
             </Button>
           </Flex>
         </Flex>
