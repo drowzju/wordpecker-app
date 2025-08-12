@@ -33,7 +33,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Exercise, WordList } from '../types';
-import { ArrowBackIcon, CloseIcon, CheckCircleIcon, InfoIcon, StarIcon } from '@chakra-ui/icons';
+import { ArrowBackIcon, CloseIcon, CheckCircleIcon, InfoIcon, StarIcon, DeleteIcon } from '@chakra-ui/icons';
 import { apiService } from '../services/api';
 import { QuestionRenderer } from '../components/QuestionRenderer';
 import { SessionService } from '../services/sessionService';
@@ -253,6 +253,40 @@ export const Learn = () => {
     setActualCorrectness(null); // Reset validation result
   };
 
+  const handleDeleteExercise = async (exerciseId: string) => {
+    if (!window.confirm('Are you sure you want to delete this exercise? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await apiService.deleteExercise(exerciseId);
+      toast({
+        title: 'Exercise Deleted',
+        description: 'This exercise has been removed from your local library.',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+
+      const newExercises = exercises.filter(ex => ex.id !== exerciseId);
+      setExercises(newExercises);
+
+      if (currentExercise >= newExercises.length) {
+        setIsCompleted(true);
+      }
+
+    } catch (error: any) {
+      console.error('Error deleting exercise:', error);
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to delete exercise.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <Center h="calc(100vh - 64px)">
@@ -332,14 +366,26 @@ export const Learn = () => {
             </Badge>
           </Flex>
         </Box>
-        <Link to={`/lists/${id}`}>
-          <IconButton
-            aria-label="Exit"
-            icon={<CloseIcon />}
-            variant="ghost"
-            size="lg"
-          />
-        </Link>
+        <HStack>
+          {state.mode === 'local' && (
+            <IconButton
+              aria-label="Delete Exercise"
+              icon={<DeleteIcon />}
+              variant="ghost"
+              colorScheme="red"
+              onClick={() => handleDeleteExercise(exercise.id)}
+              size="lg"
+            />
+          )}
+          <Link to={`/lists/${id}`}>
+            <IconButton
+              aria-label="Exit"
+              icon={<CloseIcon />}
+              variant="ghost"
+              size="lg"
+            />
+          </Link>
+        </HStack>
       </Flex>
 
       <Progress 

@@ -119,6 +119,7 @@ export interface SentenceExample {
 }
 
 export interface Exercise {
+  id: string;
   word: string;
   wordId?: string;
   type: 'multiple_choice' | 'fill_blank' | 'matching' | 'true_false' | 'sentence_completion';
@@ -134,6 +135,7 @@ export interface Exercise {
 }
 
 export interface Question {
+  id: string;
   word: string;
   wordId?: string | null;
   type: 'multiple_choice' | 'fill_blank' | 'matching' | 'true_false' | 'sentence_completion';

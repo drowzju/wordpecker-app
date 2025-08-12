@@ -49,6 +49,8 @@ import learnRoutes from './api/learn/routes';
 import quizRoutes from './api/quiz/routes';
 import templateRoutes from './api/templates/routes';
 import preferencesRoutes from './api/preferences/routes';
+import exercisesRoutes from './api/exercises/routes';
+import quizzesRoutes from './api/quizzes/routes';
 
 import vocabularyRoutes from './api/vocabulary/routes';
 import languageValidationRoutes from './api/language-validation/routes';
@@ -64,9 +66,17 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Apply rate limiter only to OpenAI-powered routes
-app.use('/api/learn', openaiRateLimiter);
-app.use('/api/quiz', openaiRateLimiter);
+// Conditional rate limiter
+const conditionalRateLimiter = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (req.body.mode === 'local') {
+    return next();
+  }
+  openaiRateLimiter(req, res, next);
+};
+
+// Apply rate limiter only to AI-powered routes
+app.use('/api/learn', conditionalRateLimiter);
+app.use('/api/quiz', conditionalRateLimiter);
 
 app.use('/api/vocabulary', openaiRateLimiter);
 app.use('/api/language-validation', openaiRateLimiter);
@@ -80,6 +90,8 @@ app.use('/api/learn', learnRoutes);
 app.use('/api/quiz', quizRoutes);
 app.use('/api/templates', templateRoutes);
 app.use('/api/preferences', preferencesRoutes);
+app.use('/api/exercises', exercisesRoutes);
+app.use('/api/quizzes', quizzesRoutes);
 
 app.use('/api/vocabulary', vocabularyRoutes);
 app.use('/api/language-validation', languageValidationRoutes);

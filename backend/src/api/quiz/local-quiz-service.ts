@@ -15,7 +15,11 @@ class LocalQuizService {
         throw new Error(`Not enough local quizzes found for this list. Found ${quizzes.length}, but required ${count}.`);
       }
 
-      return quizzes;
+      // Map _id to id for frontend compatibility
+      return quizzes.map(q => {
+        const { _id, ...rest } = q;
+        return { ...rest, id: _id.toString() };
+      });
     } catch (error) {
       console.error('Error fetching quizzes from local database:', error);
       throw new Error('Failed to get quizzes from local database.');

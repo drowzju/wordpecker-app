@@ -98,6 +98,12 @@ export const apiService = {
     return response;
   },
 
+  deleteExercise: (exerciseId: string): ApiResponse<void> => 
+    api.delete(`/api/exercises/${exerciseId}`),
+
+  deleteQuiz: (quizId: string): ApiResponse<void> => 
+    api.delete(`/api/quizzes/${quizId}`),
+
   // Quiz
   startQuiz: (listId: string, mode: 'ai' | 'local'): ApiResponse<QuizStartResponse> => 
     api.post(`/api/quiz/${listId}/start`, { mode }),

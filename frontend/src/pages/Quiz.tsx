@@ -27,7 +27,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Question, WordList } from '../types';
-import { ArrowBackIcon, CloseIcon, CheckCircleIcon, InfoIcon, StarIcon } from '@chakra-ui/icons';
+import { ArrowBackIcon, CloseIcon, CheckCircleIcon, InfoIcon, StarIcon, DeleteIcon } from '@chakra-ui/icons';
 import { apiService } from '../services/api';
 import { QuestionRenderer } from '../components/QuestionRenderer';
 import { SessionService } from '../services/sessionService';
@@ -303,6 +303,40 @@ export const Quiz = () => {
     setActualCorrectness(null); // Reset validation result
   };
 
+  const handleDeleteQuiz = async (quizId: string) => {
+    if (!window.confirm('Are you sure you want to delete this quiz question? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await apiService.deleteQuiz(quizId);
+      toast({
+        title: 'Quiz Question Deleted',
+        description: 'This question has been removed from your local library.',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+
+      const newQuestions = questions.filter(q => q.id !== quizId);
+      setQuestions(newQuestions);
+
+      if (currentQuestion >= newQuestions.length) {
+        setIsCompleted(true);
+      }
+
+    } catch (error: any) {
+      console.error('Error deleting quiz question:', error);
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to delete quiz question.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <Center h="calc(100vh - 64px)">
@@ -386,14 +420,26 @@ export const Quiz = () => {
             </Badge>
           </HStack>
         </Box>
-        <Link to={`/lists/${id}`}>
-          <IconButton
-            aria-label="Exit"
-            icon={<CloseIcon />}
-            variant="ghost"
-            size="lg"
-          />
-        </Link>
+        <HStack>
+          {mode === 'local' && (
+            <IconButton
+              aria-label="Delete Quiz Question"
+              icon={<DeleteIcon />}
+              variant="ghost"
+              colorScheme="red"
+              onClick={() => handleDeleteQuiz(question.id)}
+              size="lg"
+            />
+          )}
+          <Link to={`/lists/${id}`}>
+            <IconButton
+              aria-label="Exit"
+              icon={<CloseIcon />}
+              variant="ghost"
+              size="lg"
+            />
+          </Link>
+        </HStack>
       </Flex>
 
       <Progress 
