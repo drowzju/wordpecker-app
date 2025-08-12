@@ -126,15 +126,27 @@ router.post('/:id/import-quizzes', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Invalid request body: "quizzes" array not found.' });
     }
 
-    const quizzesWithListId = quizzes.map(ex => ({ ...ex, listId: id }));
+    const processedQuizzes = await Promise.all(quizzes.map(async (quiz) => {
+      const word = await Word.findOne({ value: quiz.word, 'ownedByLists.listId': id }).lean();
+      if (word) {
+        return { ...quiz, listId: id, wordId: word._id };
+      }
+      return null;
+    }));
 
-    await Quiz.insertMany(quizzesWithListId);
+    const validQuizzes = processedQuizzes.filter(q => q !== null);
+
+    if (validQuizzes.length === 0) {
+      return res.status(400).json({ message: 'No valid quizzes found for the words in this list.' });
+    }
+
+    await Quiz.insertMany(validQuizzes);
 
     res.status(201).json({
-      message: `Successfully imported and saved ${quizzes.length} quizzes for list ${id}.`,
-      wordCount: new Set(quizzes.map((ex: any) => ex.word)).size,
-      typeCounts: quizzes.reduce((acc: any, ex: any) => {
-        acc[ex.type] = (acc[ex.type] || 0) + 1;
+      message: `Successfully imported and saved ${validQuizzes.length} quizzes for list ${id}.`,
+      wordCount: new Set(validQuizzes.map((q: any) => q.word)).size,
+      typeCounts: validQuizzes.reduce((acc: any, q: any) => {
+        acc[q.type] = (acc[q.type] || 0) + 1;
         return acc;
       }, {})
     });
@@ -142,6 +154,17 @@ router.post('/:id/import-quizzes', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error importing quizzes:', error);
     res.status(500).json({ message: 'Error importing quizzes' });
+  }
+});
+
+router.delete('/:id/quizzes', validate(listParamsSchema), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const result = await Quiz.deleteMany({ listId: id });
+    res.status(200).json({ message: `Successfully deleted ${result.deletedCount} quizzes for list ${id}.` });
+  } catch (error) {
+    console.error('Error deleting quizzes:', error);
+    res.status(500).json({ message: 'Error deleting quizzes' });
   }
 });
 
