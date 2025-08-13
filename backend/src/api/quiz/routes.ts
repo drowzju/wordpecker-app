@@ -105,36 +105,40 @@ router.post('/:listId/more', validate(startQuizSchema), async (req, res) => {
 router.put('/:listId/learned-points', validate(updatePointsSchema), async (req, res) => {
   try {
     const { listId } = req.params;
-    const { results } = req.body;
-    
-    console.log('Updating learned points for list:', listId);
-    console.log('Results:', results);
-    
-    await Promise.all(results.map(async (result: { wordId: string, correct: boolean }) => {
-      console.log('Processing result:', result);
-      const word = await Word.findById(result.wordId);
-      if (!word) {
-        console.log('Word not found:', result.wordId);
-        return;
-      }
-      
+    const { results } = req.body as { results: { wordId: string, correct: boolean }[] };
+
+    // Step 1: Aggregate point changes for each wordId
+    const pointChanges = new Map<string, number>();
+    for (const result of results) {
+      const change = result.correct ? 10 : -5;
+      pointChanges.set(result.wordId, (pointChanges.get(result.wordId) || 0) + change);
+    }
+
+    // Step 2: Fetch all unique words in a single query
+    const wordIds = Array.from(pointChanges.keys());
+    const words = await Word.find({ '_id': { $in: wordIds } });
+
+    // Step 3: Apply the aggregated changes and collect save promises
+    const savePromises = words.map(word => {
       const context = word.ownedByLists.find(ctx => ctx.listId.toString() === listId);
       if (!context) {
-        console.log('Context not found for word:', result.wordId, 'in list:', listId);
-        return;
+        console.log(`Context not found for word: ${word._id} in list: ${listId}`);
+        return Promise.resolve(); // Resolve promise to not break Promise.all
       }
+
+      const pointChange = pointChanges.get(word._id.toString()) || 0;
+      const currentPoints = context.learnedPoint || 0;
+      const newPoints = Math.max(0, Math.min(100, currentPoints + pointChange));
       
-      const current = context.learnedPoint || 0;
-      const newPoints = result.correct 
-        ? Math.min(100, current + 10) 
-        : Math.max(0, current - 5);
-      
-      console.log(`Word ${word.value}: ${current} → ${newPoints} (${result.correct ? 'correct' : 'incorrect'})`);
+      console.log(`Word ${word.value}: ${currentPoints} → ${newPoints} (Change: ${pointChange})`);
       context.learnedPoint = newPoints;
       
-      await word.save();
-    }));
-    
+      return word.save();
+    });
+
+    // Step 4: Execute all save operations
+    await Promise.all(savePromises);
+
     res.json({ message: 'Learned points updated successfully' });
   } catch (error) {
     console.error('Error updating learned points:', error);
