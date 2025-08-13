@@ -59,6 +59,22 @@ router.get('/:id', validate(listParamsSchema), async (req, res) => {
   }
 });
 
+router.get('/:id/local-stats', validate(listParamsSchema), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [exerciseCount, quizCount] = await Promise.all([
+      Exercise.countDocuments({ listId: id }),
+      Quiz.countDocuments({ listId: id })
+    ]);
+
+    res.json({ exerciseCount, quizCount });
+  } catch (error) {
+    console.error('Error fetching local stats:', error);
+    res.status(500).json({ message: 'Error fetching local stats' });
+  }
+});
+
 router.put('/:id', validate(updateListSchema), async (req, res) => {
   try {
     const { id } = req.params;

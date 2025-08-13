@@ -65,6 +65,7 @@ export const apiService = {
   // Lists
   getLists: (): ApiResponse<WordList[]> => api.get('/api/lists'),
   getList: (id: string): ApiResponse<WordList> => api.get(`/api/lists/${id}`),
+  getListLocalStats: (id: string): ApiResponse<{ exerciseCount: number, quizCount: number }> => api.get(`/api/lists/${id}/local-stats`),
   createList: (data: Partial<WordList>): ApiResponse<WordList> => api.post('/api/lists', data),
   updateList: (id: string, data: Partial<WordList>): ApiResponse<WordList> => api.put(`/api/lists/${id}`, data),
   deleteList: async (listId: string): Promise<void> => {

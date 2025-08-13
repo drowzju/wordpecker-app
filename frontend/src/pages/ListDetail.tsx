@@ -71,6 +71,7 @@ export const ListDetail = () => {
   const [generatingReading, setGeneratingReading] = useState(false);
   const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
   const [exerciseMode, setExerciseMode] = useState<'ai' | 'local'>('ai');
+  const [localStats, setLocalStats] = useState<{ exerciseCount: number, quizCount: number } | null>(null);
   
   const { 
     isOpen: isReadingModalOpen, 
@@ -83,15 +84,17 @@ export const ListDetail = () => {
       if (!id) return;
       
       try {
-        const [listData, wordsData, preferencesData] = await Promise.all([
+        const [listData, wordsData, preferencesData, statsData] = await Promise.all([
           apiService.getList(id),
           apiService.getWords(id),
-          apiService.getPreferences()
+          apiService.getPreferences(),
+          apiService.getListLocalStats(id)
         ]);
         
         setList(listData);
         setWords(wordsData);
         setUserPreferences(preferencesData);
+        setLocalStats(statsData);
       } catch (error) {
         console.error('Error fetching list details:', error);
         toast({
@@ -514,12 +517,17 @@ export const ListDetail = () => {
             </Heading>
           </Flex>
           <Flex align="center" gap={2} flexWrap="wrap" justify={{ base: 'center', md: 'flex-end' }}>
-            <FormControl display="flex" alignItems="center" w="auto" mr={2}>
-              <FormLabel htmlFor="exercise-mode" mb="0" mr={2} whiteSpace="nowrap">
-                Local Ex.&Quiz.
+            <FormControl display="flex" alignItems="center" w="auto">
+              <FormLabel htmlFor="exercise-mode" mb="0" mr={2} whiteSpace="nowrap" color="blue.200">
+                Use Local
               </FormLabel>
               <Switch id="exercise-mode" isChecked={exerciseMode === 'local'} onChange={() => setExerciseMode(prev => prev === 'ai' ? 'local' : 'ai')} />
             </FormControl>
+            {localStats && (
+              <Text fontSize="sm" color="blue.200">
+                (Ex: {localStats.exerciseCount} | Qz: {localStats.quizCount})
+              </Text>
+            )}
             <Button
               variant="ghost"
               colorScheme="green"
