@@ -246,7 +246,7 @@ export const ListDetail = () => {
               return reject(new Error(`Invalid JSON format in ${file.name}: "exercises" array not found.`));
             }
             resolve(data.exercises);
-          } catch (error) {
+          } catch (error: any) {
             reject(new Error(`Error parsing ${file.name}: ${error.message}`));
           }
         };
@@ -329,7 +329,7 @@ export const ListDetail = () => {
               return reject(new Error(`Invalid JSON format in ${file.name}: "questions" array not found.`));
             }
             resolve(data.questions);
-          } catch (error) {
+          } catch (error: any) {
             reject(new Error(`Error parsing ${file.name}: ${error.message}`));
           }
         };
