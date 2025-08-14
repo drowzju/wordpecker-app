@@ -696,6 +696,8 @@ export const ListDetail = () => {
                     ease: "easeOut"
                   }}
                   onClick={() => navigate(`/words/${word.id}`)}
+                  onMouseEnter={() => setSelectedWord(word.id)}
+                  onMouseLeave={() => setSelectedWord(null)}
                   p={4}
                   borderRadius="lg"
                   bg={generateColor(word.value)}
@@ -732,18 +734,7 @@ export const ListDetail = () => {
                         </Text>
                       )}
                     </Box>
-                    <Box
-                      onMouseEnter={(e) => {
-                        e.stopPropagation();
-                        setSelectedWord(word.id);
-                      }}
-                      onMouseLeave={(e) => {
-                        e.stopPropagation();
-                        if (selectedWord !== word.id) {
-                          setSelectedWord(null);
-                        }
-                      }}
-                    >
+                    <Box>
                       <IconButton
                         aria-label="Delete word"
                         icon={<DeleteIcon />}
