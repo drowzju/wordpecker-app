@@ -193,7 +193,8 @@ export const Learn = () => {
       let isValid = false;
       
       // Use async validation for all question types for consistency
-      isValid = await validateAnswer(selectedAnswer, exercise, list?.context);
+      const mode = state?.mode || 'ai';
+      isValid = await validateAnswer(selectedAnswer, exercise, mode, list?.context);
       
       // Store the actual correctness for UI display
       setActualCorrectness(isValid);

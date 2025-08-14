@@ -4,6 +4,7 @@ import { apiService } from '../services/api';
 export const validateAnswer = async (
   userAnswer: string, 
   question: Exercise | Question, 
+  mode: 'ai' | 'local',
   context?: string
 ): Promise<boolean> => {
   if (!userAnswer || !question.correctAnswer) return false;
@@ -30,15 +31,20 @@ export const validateAnswer = async (
           return acc;
         }, {} as Record<string, string>);
         
-        const correctPairs = question.pairs || [];
-        return correctPairs.every(pair => userAnswers[pair.word] === pair.definition);
+        const correctPairs = question.correctAnswer?.pairs || [];
+        if (correctPairs.length === 0) return false; // No correct answer defined
+
+        return correctPairs.every(pair => userAnswers[pair[0]] === pair[1]);
       } catch (error) {
         console.error('Error validating matching answer:', error);
         return false;
       }
     
     case 'fill_blank':
-      // Use backend LLM validation for fill-in-the-blank
+      if (mode === 'local') {
+        return userAnswer.toLowerCase().trim() === question.correctAnswer.toLowerCase().trim();
+      }
+      // Use backend LLM validation for fill-in-the-blank in AI mode
       try {
         const result = await apiService.validateFillBlankAnswer(
           userAnswer,

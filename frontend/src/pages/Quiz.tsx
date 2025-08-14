@@ -204,7 +204,7 @@ export const Quiz = () => {
       let isValid = false;
       
       // Use async validation for all question types for consistency
-      isValid = await validateAnswer(selectedAnswer, question, list?.context);
+      isValid = await validateAnswer(selectedAnswer, question, mode, list?.context);
       
       // Store the actual correctness for UI display
       setActualCorrectness(isValid);
