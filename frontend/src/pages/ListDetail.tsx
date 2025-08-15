@@ -378,6 +378,81 @@ export const ListDetail = () => {
     event.target.value = '';
   };
 
+  const wordFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleWordImportClick = () => {
+    wordFileInputRef.current?.click();
+  };
+
+  const handleWordFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const toastId = "word-import-toast";
+    toast({
+      id: toastId,
+      title: 'Importing Words...',
+      description: `Processing ${file.name}.`,
+      status: 'info',
+      duration: null,
+      isClosable: true,
+    });
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const content = e.target?.result;
+        if (typeof content !== 'string') {
+          throw new Error('File content is not a string.');
+        }
+        const wordsToImport = JSON.parse(content);
+        if (!Array.isArray(wordsToImport)) {
+          throw new Error('Invalid JSON format: root should be an array.');
+        }
+
+        if (!id) {
+          throw new Error('No list ID found.');
+        }
+
+        const response = await apiService.importWords(id, wordsToImport);
+        
+        // Refetch words to update the list
+        const wordsData = await apiService.getWords(id);
+        setWords(wordsData);
+
+        toast.update(toastId, {
+          title: 'Words Imported Successfully',
+          description: `${response.addedCount} words were added to the list.`,
+          status: 'success',
+          duration: 5000,
+        });
+
+      } catch (error: any) {
+        console.error('Error importing word file:', error);
+        toast.update(toastId, {
+          title: 'Error Importing File',
+          description: error.message || 'Please check the file format and try again.',
+          status: 'error',
+          duration: 9000,
+        });
+      } finally {
+        // Reset the file input
+        if (event.target) {
+          event.target.value = '';
+        }
+      }
+    };
+    reader.onerror = (error) => {
+      toast.update(toastId, {
+        title: 'Error Reading File',
+        description: error.message,
+        status: 'error',
+        duration: 9000,
+      });
+    };
+    reader.readAsText(file);
+  };
+
   const handleExportList = () => {
     if (!list || !userPreferences) {
       toast({
@@ -478,6 +553,13 @@ export const ListDetail = () => {
         accept=".json"
         multiple
       />
+      <input
+        type="file"
+        ref={wordFileInputRef}
+        onChange={handleWordFileImport}
+        style={{ display: 'none' }}
+        accept=".json"
+      />
       <MotionBox
         initial="hidden"
         animate="visible"
@@ -545,6 +627,15 @@ export const ListDetail = () => {
               size="md"
             >
               Qz.
+            </Button>
+            <Button
+              variant="ghost"
+              colorScheme="teal"
+              leftIcon={<FaUpload />}
+              onClick={handleWordImportClick}
+              size="md"
+            >
+              Word
             </Button>
             <Button
               variant="ghost"

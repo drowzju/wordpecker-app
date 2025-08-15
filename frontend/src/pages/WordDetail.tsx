@@ -50,36 +50,7 @@ import { apiService } from '../services/api';
 import { WordDetail, SentenceExample, SimilarWordsResponse, WordList } from '../types';
 import PronunciationButton from '../components/PronunciationButton';
 
-// Helper to transform old dictionary structure to the new one
-const transformWordDetailDictionary = (wordDetail: WordDetail): WordDetail => {
-  if (wordDetail.dictionary && wordDetail.dictionary.length > 0) {
-    // Check if the first entry has 'meanings' but not 'dictionary' property, indicating old structure
-    const firstEntry = wordDetail.dictionary[0];
-    if (firstEntry.meanings && !firstEntry.dictionary) {
-      console.log("Transforming old dictionary structure:", firstEntry);
-      return {
-        ...wordDetail,
-        dictionary: [
-          {
-            ...firstEntry, // Keep word, phonetics, etc.
-            dictionary: firstEntry.meanings.map((meaning, index) => ({
-              partOfSpeech: meaning.partOfSpeech,
-              definitions: meaning.definitions.map((def, defIndex) => ({
-                ...def,
-                number: `${index + 1}.${defIndex + 1}`
-              })),
-              derivatives: [], // Old structure doesn't have this
-              entryNumber: `${index + 1}`
-            })),
-            stems: [] // Old structure doesn't have this
-          }
-        ]
-      };
-    }
-  }
-  console.log("No dictionary transformation needed.");
-  return wordDetail;
-};
+
 
 
 export function WordDetailPage() {
@@ -130,9 +101,7 @@ export function WordDetailPage() {
     try {
       const data = await apiService.getWordDetails(wordId);
       console.log('Fetched word details from API:', data);
-      const transformedData = transformWordDetailDictionary(data);
-      console.log('Transformed word details:', transformedData);
-      setWordDetail(transformedData);
+      setWordDetail(data);
       if (data.examples && data.examples.length > 0) {
         setShowSentences(true);
       }
@@ -583,106 +552,128 @@ export function WordDetailPage() {
 
       <Divider my={8} />
 
-      {wordDetail.dictionary && wordDetail.dictionary.length > 0 && wordDetail.dictionary[0].dictionary && (
-        <Box mb={6}>
-          <Flex justify="space-between" align="center" mb={4}>
-            <Heading as="h2" size={{ base: "md", md: "lg" }} color="blue.400">
-              📖 Dictionary Results for "{wordDetail.value}"
-            </Heading>
-            <Button
-              as="a"
-              href={`https://www.merriam-webster.com/dictionary/${wordDetail.value}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              rightIcon={<FaExternalLinkAlt />}
-              colorScheme="blue"
-              variant="outline"
-              size="sm"
-            >
-              Merriam-Webster
-            </Button>
-          </Flex>
-          <Accordion allowMultiple defaultIndex={[0]}>
-            {wordDetail.dictionary[0].dictionary.map((entry, entryIndex) => (
-              <AccordionItem key={entryIndex} bg={cardBg} borderRadius="lg" mb={4}>
-                <h2>
-                  <AccordionButton _expanded={{ bg: 'blue.900', color: 'white' }} borderRadius="lg">
-                    <Box as="span" flex='1' textAlign='left'>
-                      <HStack>
-                        <Badge colorScheme="purple" variant="solid" fontSize="md">{entry.partOfSpeech}</Badge>
-                        <Text fontWeight="bold">({entry.entryNumber} of {wordDetail.dictionary[0].dictionary.length})</Text>
-                      </HStack>
-                    </Box>
-                    <AccordionIcon />
-                  </AccordionButton>
-                </h2>
-                <AccordionPanel pb={4}>
-                  <VStack align="stretch" spacing={4}>
-                    {/* Phonetics */}
-                    <HStack spacing={4} wrap="wrap">
-                      {entry.phonetics && entry.phonetics.map((phonetic, phoneticIndex) => (
-                        <HStack key={phoneticIndex} align="center">
-                          {phonetic.audio && (
-                            <PronunciationButton
-                              text={wordDetail.value}
-                              audioUrl={phonetic.audio}
-                              type="word"
-                              language="en"
-                              size="sm"
-                              colorScheme="blue"
-                            />
+      <Divider my={8} />
+
+      {(() => {
+        const getNormalizedDictionaryEntries = (dictionary) => {
+          if (!dictionary || dictionary.length === 0) return [];
+          // Check for the old, nested structure.
+          if (dictionary[0]?.dictionary && Array.isArray(dictionary[0].dictionary)) {
+            return dictionary[0].dictionary;
+          }
+          // Assume it's the new, flat structure.
+          return dictionary;
+        };
+
+        const dictionaryEntries = getNormalizedDictionaryEntries(wordDetail.dictionary);
+
+        if (dictionaryEntries.length === 0) {
+          return null;
+        }
+
+        return (
+          <Box mb={6}>
+            <Flex justify="space-between" align="center" mb={4}>
+              <Heading as="h2" size={{ base: "md", md: "lg" }} color="blue.400">
+                📖 Dictionary Results for "{wordDetail.value}"
+              </Heading>
+              <Button
+                as="a"
+                href={`https://www.merriam-webster.com/dictionary/${wordDetail.value}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                rightIcon={<FaExternalLinkAlt />}
+                colorScheme="blue"
+                variant="outline"
+                size="sm"
+              >
+                Merriam-Webster
+              </Button>
+            </Flex>
+            <Accordion allowMultiple defaultIndex={[0]}>
+              {dictionaryEntries.map((entry, entryIndex) => (
+                <AccordionItem key={entryIndex} bg={cardBg} borderRadius="lg" mb={4}>
+                  <h2>
+                    <AccordionButton _expanded={{ bg: 'blue.900', color: 'white' }} borderRadius="lg">
+                      <Box as="span" flex='1' textAlign='left'>
+                        <HStack>
+                          <Badge colorScheme="purple" variant="solid" fontSize="md">{entry.partOfSpeech}</Badge>
+                          {dictionaryEntries.length > 1 && (
+                            <Text fontWeight="bold">({entry.entryNumber} of {dictionaryEntries.length})</Text>
                           )}
-                          <Text fontSize="lg" color="gray.300">{phonetic.text}</Text>
                         </HStack>
-                      ))}
-                    </HStack>
-
-                    {/* Definitions */}
-                    <VStack align="stretch" spacing={3} pl={4} borderLeft="3px solid" borderColor="purple.300">
-                      {entry.definitions.map((def, defIndex) => (
-                        <Box key={defIndex} pb={2}>
-                          <Text fontSize="md" fontWeight="medium">
-                            <Badge colorScheme="gray" mr={2}>{def.number}</Badge>
-                            {def.definition}
-                          </Text>
-                        </Box>
-                      ))}
-                    </VStack>
-
-                    {/* Derivatives */}
-                    {(entry.derivatives?.length || 0) > 0 && (
-                      <Box w="full" pt={3}>
-                        <Heading as="h4" size="sm" color="gray.300" mb={2}>Derivatives</Heading>
-                        <Wrap>
-                          {entry.derivatives?.map((d, i) => (
-                            <Tag key={i} colorScheme="green" variant="solid">{d.word}</Tag>
-                          ))}
-                        </Wrap>
                       </Box>
-                    )}
-                  </VStack>
-                </AccordionPanel>
-              </AccordionItem>
-            ))}
-          </Accordion>
+                      <AccordionIcon />
+                    </AccordionButton>
+                  </h2>
+                  <AccordionPanel pb={4}>
+                    <VStack align="stretch" spacing={4}>
+                      {/* Phonetics */}
+                      <HStack spacing={4} wrap="wrap">
+                        {entry.phonetics && entry.phonetics.map((phonetic, phoneticIndex) => (
+                          <HStack key={phoneticIndex} align="center">
+                            {phonetic.audio && (
+                              <PronunciationButton
+                                text={wordDetail.value}
+                                audioUrl={phonetic.audio}
+                                type="word"
+                                language="en"
+                                size="sm"
+                                colorScheme="blue"
+                              />
+                            )}
+                            <Text fontSize="lg" color="gray.300">{phonetic.text}</Text>
+                          </HStack>
+                        ))}
+                      </HStack>
 
-          {/* Stems Card */}
-          {(wordDetail.dictionary[0].stems?.length || 0) > 0 && (
-            <Card bg={cardBg} borderColor={borderColor} borderWidth="1px" shadow="sm" mt={6}>
-              <CardBody py={4} px={6}>
-                <VStack align="start" spacing={2}>
-                  <Heading as="h4" size="sm" color="gray.300">Related Word Stems</Heading>
-                  <Wrap>
-                    {wordDetail.dictionary[0].stems?.map((stem, i) => (
-                      <Tag key={i} colorScheme="cyan" variant="solid">{stem}</Tag>
-                    ))}
-                  </Wrap>
-                </VStack>
-              </CardBody>
-            </Card>
-          )}
-        </Box>
-      )}
+                      {/* Definitions */}
+                      <VStack align="stretch" spacing={3} pl={4} borderLeft="3px solid" borderColor="purple.300">
+                        {entry.definitions?.map((def, defIndex) => (
+                          <Box key={defIndex} pb={2}>
+                            <Text fontSize="md" fontWeight="medium">
+                              <Badge colorScheme="gray" mr={2}>{def.number}</Badge>
+                              {def.definition}
+                            </Text>
+                          </Box>
+                        ))}
+                      </VStack>
+
+                      {/* Derivatives */}
+                      {(entry.derivatives?.length || 0) > 0 && (
+                        <Box w="full" pt={3}>
+                          <Heading as="h4" size="sm" color="gray.300" mb={2}>Derivatives</Heading>
+                          <Wrap>
+                            {entry.derivatives?.map((d, i) => (
+                              <Tag key={i} colorScheme="green" variant="solid">{d.word}</Tag>
+                            ))}
+                          </Wrap>
+                        </Box>
+                      )}
+                    </VStack>
+                  </AccordionPanel>
+                </AccordionItem>
+              ))}
+            </Accordion>
+
+            {/* Stems Card - Note: Stems only exist in the old structure's wrapper */}
+            {(wordDetail.dictionary?.[0]?.stems?.length || 0) > 0 && (
+              <Card bg={cardBg} borderColor={borderColor} borderWidth="1px" shadow="sm" mt={6}>
+                <CardBody py={4} px={6}>
+                  <VStack align="start" spacing={2}>
+                    <Heading as="h4" size="sm" color="gray.300">Related Word Stems</Heading>
+                    <Wrap>
+                      {wordDetail.dictionary[0].stems?.map((stem, i) => (
+                        <Tag key={i} colorScheme="cyan" variant="solid">{stem}</Tag>
+                      ))}
+                    </Wrap>
+                  </VStack>
+                </CardBody>
+              </Card>
+            )}
+          </Box>
+        );
+      })()}
 
       
 

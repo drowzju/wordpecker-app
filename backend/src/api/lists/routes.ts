@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { validate } from 'echt';
+import { wordService } from '../../services/wordService';
 import { WordList, IWordList } from './model';
 import { Word } from '../words/model';
 import { Exercise } from '../learn/exerciseModel';
@@ -170,6 +171,40 @@ router.post('/:id/import-quizzes', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error importing quizzes:', error);
     res.status(500).json({ message: 'Error importing quizzes' });
+  }
+});
+
+router.post('/:id/import-words', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { words } = req.body;
+    const userId = req.headers['user-id'] as string;
+
+    if (!words || !Array.isArray(words)) {
+      return res.status(400).json({ message: 'Invalid request body: "words" array not found.' });
+    }
+
+    let addedCount = 0;
+    for (const wordData of words) {
+      const { word, definition, phonetic, partOfSpeech } = wordData;
+      if (!word || !definition) continue;
+
+      const predefinedDefinition = { definition, phonetic, partOfSpeech };
+      const addedWord = await wordService.addWordToList(id, word, userId, predefinedDefinition);
+      if(addedWord) {
+        addedCount++;
+      }
+    }
+
+    res.status(201).json({
+      message: `Successfully imported and processed ${words.length} words. Added ${addedCount} new words to the list.`,
+      addedCount,
+      listId: id,
+    });
+
+  } catch (error) {
+    console.error('Error importing words:', error);
+    res.status(500).json({ message: 'Error importing words' });
   }
 });
 

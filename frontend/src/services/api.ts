@@ -99,6 +99,12 @@ export const apiService = {
     return response;
   },
 
+  importWords: (listId: string, words: { word: string; definition: string; partOfSpeech: string; phonetic: string; }[]): ApiResponse<{
+    message: string;
+    addedCount: number;
+    listId: string;
+  }> => api.post(`/api/lists/${listId}/import-words`, { words }),
+
   deleteExercise: (exerciseId: string): ApiResponse<void> => 
     api.delete(`/api/exercises/${exerciseId}`),
 
