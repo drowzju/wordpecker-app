@@ -20,3 +20,4 @@ yarn-error.log*
 
 */audio-cache
 geminicli_works/*.json
+geminicli_works/*.txt
