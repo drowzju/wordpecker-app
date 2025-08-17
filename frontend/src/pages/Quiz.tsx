@@ -21,7 +21,14 @@ import {
   StatHelpText,
   SimpleGrid,
   Icon,
-  useColorModeValue
+  useColorModeValue,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
+  useDisclosure
 } from '@chakra-ui/react';
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
@@ -66,6 +73,8 @@ export const Quiz = () => {
   const [actualCorrectness, setActualCorrectness] = useState<boolean | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
   const [isUpdatingPoints, setIsUpdatingPoints] = useState(false);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const cancelRef = useRef(null);
 
   useEffect(() => {
     if (isMountedRef.current) return;
@@ -158,6 +167,14 @@ export const Quiz = () => {
       });
     } finally {
       setIsUpdatingPoints(false);
+      navigate(-1);
+    }
+  };
+
+  const handleExit = () => {
+    if (quizResults.length > 0 && !isCompleted) {
+      onOpen();
+    } else {
       navigate(-1);
     }
   };
@@ -374,7 +391,7 @@ export const Quiz = () => {
           aria-label="Go back"
           icon={<ArrowBackIcon />}
           variant="ghost"
-          onClick={() => navigate(-1)}
+          onClick={handleExit}
           size="lg"
         />
       </Flex>
@@ -431,14 +448,13 @@ export const Quiz = () => {
               size="lg"
             />
           )}
-          <Link to={`/lists/${id}`}>
-            <IconButton
-              aria-label="Exit"
-              icon={<CloseIcon />}
-              variant="ghost"
-              size="lg"
-            />
-          </Link>
+          <IconButton
+            aria-label="Exit"
+            icon={<CloseIcon />}
+            variant="ghost"
+            size="lg"
+            onClick={handleExit}
+          />
         </HStack>
       </Flex>
 
@@ -670,6 +686,38 @@ export const Quiz = () => {
           )}
         </Flex>
       </MotionBox>
+
+      <AlertDialog
+        isOpen={isOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onClose}
+        isCentered
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent bg={useColorModeValue('gray.50', 'gray.700')}>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Exit Quiz
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              You have unsaved progress. Are you sure you want to leave?
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onClose}>
+                Cancel
+              </Button>
+              <Button variant='ghost' colorScheme="red" onClick={() => navigate(-1)} ml={3}>
+                Exit Without Saving
+              </Button>
+              <Button colorScheme="purple" onClick={updateLearnedPoints} ml={3}>
+                Save and Exit
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+
     </MotionBox>
   );
-}; 
+};
