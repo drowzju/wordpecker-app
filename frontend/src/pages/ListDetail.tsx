@@ -445,7 +445,7 @@ export const ListDetail = () => {
     reader.onerror = (error) => {
       toast.update(toastId, {
         title: 'Error Reading File',
-        description: error.message,
+        description: reader.error?.message ?? 'An unknown error occurred while reading the file.', 
         status: 'error',
         duration: 9000,
       });
