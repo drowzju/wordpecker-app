@@ -73,7 +73,10 @@ export const Quiz = () => {
   const [actualCorrectness, setActualCorrectness] = useState<boolean | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
   const [isUpdatingPoints, setIsUpdatingPoints] = useState(false);
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  
+  const { isOpen: isExitOpen, onOpen: onExitOpen, onClose: onExitClose } = useDisclosure();
+  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
+  const [quizToDelete, setQuizToDelete] = useState<string | null>(null);
   const cancelRef = useRef(null);
 
   useEffect(() => {
@@ -173,7 +176,7 @@ export const Quiz = () => {
 
   const handleExit = () => {
     if (quizResults.length > 0 && !isCompleted) {
-      onOpen();
+      onExitOpen();
     } else {
       navigate(-1);
     }
@@ -320,13 +323,16 @@ export const Quiz = () => {
     setActualCorrectness(null); // Reset validation result
   };
 
-  const handleDeleteQuiz = async (quizId: string) => {
-    if (!window.confirm('Are you sure you want to delete this quiz question? This action cannot be undone.')) {
-      return;
-    }
+  const handleDeleteQuiz = (quizId: string) => {
+    setQuizToDelete(quizId);
+    onDeleteOpen();
+  };
+
+  const confirmDeleteQuiz = async () => {
+    if (!quizToDelete) return;
 
     try {
-      await apiService.deleteQuiz(quizId);
+      await apiService.deleteQuiz(quizToDelete);
       toast({
         title: 'Quiz Question Deleted',
         description: 'This question has been removed from your local library.',
@@ -335,7 +341,7 @@ export const Quiz = () => {
         isClosable: true,
       });
 
-      const newQuestions = questions.filter(q => q.id !== quizId);
+      const newQuestions = questions.filter(q => q.id !== quizToDelete);
       setQuestions(newQuestions);
 
       if (currentQuestion >= newQuestions.length) {
@@ -351,6 +357,9 @@ export const Quiz = () => {
         duration: 5000,
         isClosable: true,
       });
+    } finally {
+      onDeleteClose();
+      setQuizToDelete(null);
     }
   };
 
@@ -687,10 +696,11 @@ export const Quiz = () => {
         </Flex>
       </MotionBox>
 
+      {/* Exit Confirmation Dialog */}
       <AlertDialog
-        isOpen={isOpen}
+        isOpen={isExitOpen}
         leastDestructiveRef={cancelRef}
-        onClose={onClose}
+        onClose={onExitClose}
         isCentered
       >
         <AlertDialogOverlay>
@@ -704,7 +714,7 @@ export const Quiz = () => {
             </AlertDialogBody>
 
             <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onClose}>
+              <Button ref={cancelRef} onClick={onExitClose}>
                 Cancel
               </Button>
               <Button variant='ghost' colorScheme="red" onClick={() => navigate(-1)} ml={3}>
@@ -712,6 +722,35 @@ export const Quiz = () => {
               </Button>
               <Button colorScheme="purple" onClick={updateLearnedPoints} ml={3}>
                 Save and Exit
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        isOpen={isDeleteOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onDeleteClose}
+        isCentered
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent bg={useColorModeValue('gray.50', 'gray.700')}>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete Question
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure you want to delete this quiz question? This action cannot be undone.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onDeleteClose}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={confirmDeleteQuiz} ml={3}>
+                Delete
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
