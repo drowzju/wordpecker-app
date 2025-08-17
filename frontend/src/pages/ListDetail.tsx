@@ -70,7 +70,7 @@ export const ListDetail = () => {
   const [lightReadingLevel, setLightReadingLevel] = useState<'beginner' | 'intermediate' | 'advanced'>('intermediate');
   const [generatingReading, setGeneratingReading] = useState(false);
   const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
-  const [exerciseMode, setExerciseMode] = useState<'ai' | 'local'>('ai');
+  const [exerciseMode, setExerciseMode] = useState<'ai' | 'local'>('local');
   const [localStats, setLocalStats] = useState<{ exerciseCount: number, quizCount: number } | null>(null);
   
   const { 
