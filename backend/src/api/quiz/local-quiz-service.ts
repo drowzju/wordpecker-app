@@ -55,10 +55,9 @@ class LocalQuizService {
         {
           $addFields: {
             // Weight: 101 - learnedPoint. Lower points get higher weight.
-            // Words not yet practiced (learnedPoint=null) get a high weight.
-            // Quizzes without a wordId get a medium weight (50).
+            // Words not yet practiced (learnedPoint=null) get the highest priority (defaulting to 0).
             weight: {
-              $ifNull: ['$listContext.learnedPoint', 90] // Give high priority to words not yet learned
+              $ifNull: ['$listContext.learnedPoint', 0] // Give high priority to words not yet learned
             }
           }
         },
