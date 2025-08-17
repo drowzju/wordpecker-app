@@ -6,17 +6,64 @@ import { UserPreferences } from '../preferences/model';
 import { QuestionType } from '../../types';
 import { quizAgentService } from './agent-service';
 import { localQuizService } from './local-quiz-service';
-import { shuffleArray } from '../../utils/arrayUtils';
 import { startQuizSchema, updatePointsSchema } from './schemas';
 
 const router = Router();
 
 const transformWords = (words: any[], listId: string) => 
-  words.map(word => ({
-    id: word._id.toString(),
-    value: word.value,
-    meaning: word.ownedByLists.find((ctx: any) => ctx.listId.toString() === listId)?.meaning || ''
+  words.map(word => {
+    const listContext = word.ownedByLists.find((ctx: any) => ctx.listId.toString() === listId);
+    return {
+      id: word._id.toString(),
+      value: word.value,
+      meaning: listContext?.meaning || '',
+      learnedPoint: listContext?.learnedPoint || 0
+    };
+  });
+
+const selectWordsForQuiz = (words: any[], count: number) => {
+  if (words.length <= count) {
+    return words;
+  }
+
+  // Calculate weights, giving higher probability to words with lower learnedPoint
+  const weightedWords = words.map(word => ({
+    ...word,
+    // Weight: 101 - learnedPoint. Lower points get higher weight.
+    weight: 101 - word.learnedPoint
   }));
+
+  const totalWeight = weightedWords.reduce((sum, word) => sum + word.weight, 0);
+  
+  const selectedWords: any[] = [];
+  const availableWords = [...weightedWords];
+
+  while (selectedWords.length < count && availableWords.length > 0) {
+    let random = Math.random() * totalWeight;
+    let selectedIndex = -1;
+
+    for (let i = 0; i < availableWords.length; i++) {
+      random -= availableWords[i].weight;
+      if (random < 0) {
+        selectedIndex = i;
+        break;
+      }
+    }
+
+    if (selectedIndex !== -1) {
+      const [selected] = availableWords.splice(selectedIndex, 1);
+      selectedWords.push(selected);
+    } else {
+      // Fallback in case of rounding errors, though unlikely
+      if(availableWords.length > 0) {
+        selectedWords.push(availableWords.pop());
+      }
+    }
+  }
+
+  return selectedWords;
+};
+
 
 const getQuestionTypes = async (userId: string): Promise<QuestionType[]> => {
   if (!userId) return ['multiple_choice', 'fill_blank', 'true_false', 'sentence_completion'];
@@ -51,9 +98,9 @@ router.post('/:listId/start', validate(startQuizSchema), async (req, res) => {
       if (!words.length) return res.status(400).json({ message: 'List has no words' });
 
       const transformed = transformWords(words, listId);
-      const shuffled = transformed.sort(() => Math.random() - 0.5);
+      const selectedWords = selectWordsForQuiz(transformed, 5);
       const questionTypes = await getQuestionTypes(req.headers['user-id'] as string);
-      questions = await quizAgentService.generateQuestions(shuffled.slice(0, 5), list.context || 'General', questionTypes);
+      questions = await quizAgentService.generateQuestions(selectedWords, list.context || 'General', questionTypes);
     }
 
     res.json({ 
@@ -90,9 +137,9 @@ router.post('/:listId/more', validate(startQuizSchema), async (req, res) => {
       if (!words.length) return res.status(400).json({ message: 'List has no words' });
 
       const transformed = transformWords(words, listId);
-      const selected = shuffleArray(transformed).slice(0, 5);
+      const selectedWords = selectWordsForQuiz(transformed, 5);
       const questionTypes = await getQuestionTypes(req.headers['user-id'] as string);
-      questions = await quizAgentService.generateQuestions(selected, list.context || 'General', questionTypes);
+      questions = await quizAgentService.generateQuestions(selectedWords, list.context || 'General', questionTypes);
     }
 
     res.json({ questions });
@@ -147,4 +194,3 @@ router.put('/:listId/learned-points', validate(updatePointsSchema), async (req, 
 });
 
 export default router;
- 

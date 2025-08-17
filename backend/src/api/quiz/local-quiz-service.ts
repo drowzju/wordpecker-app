@@ -6,13 +6,91 @@ const QUIZ_COUNT = 5;
 class LocalQuizService {
   async getQuizzesFromLocal(listId: string, count: number = QUIZ_COUNT): Promise<any[]> {
     try {
+      const listObjectId = new mongoose.Types.ObjectId(listId);
+
       const quizzes = await Quiz.aggregate([
-        { $match: { listId: new mongoose.Types.ObjectId(listId) } },
-        { $sample: { size: count } }
+        // Match quizzes for the specific list
+        { $match: { listId: listObjectId } },
+
+        // Lookup the word to get its details, especially learnedPoint
+        {
+          $lookup: {
+            from: 'words',
+            localField: 'wordId',
+            foreignField: '_id',
+            as: 'wordDetails'
+          }
+        },
+
+        // If a quiz has a wordId but it's not found in Words (dangling ref), filter it out
+        { $match: { $or: [{ wordId: { $exists: false } }, { "wordDetails.0": { $exists: true } }] } },
+
+        // Add a weight field. Give a default medium weight if wordDetails is missing.
+        {
+          $addFields: {
+            wordDetails: { $arrayElemAt: ["$wordDetails", 0] }
+          }
+        },
+        {
+          $addFields: {
+            listContext: {
+              $ifNull: [
+                { 
+                  $arrayElemAt: [
+                    { 
+                      $filter: { 
+                        input: "$wordDetails.ownedByLists", 
+                        as: "list", 
+                        cond: { $eq: ["$list.listId", listObjectId] } 
+                      } 
+                    }, 
+                    0
+                  ]
+                },
+                null // Default if context not found
+              ]
+            }
+          }
+        },
+        {
+          $addFields: {
+            // Weight: 101 - learnedPoint. Lower points get higher weight.
+            // Words not yet practiced (learnedPoint=null) get a high weight.
+            // Quizzes without a wordId get a medium weight (50).
+            weight: {
+              $ifNull: ['$listContext.learnedPoint', 90] // Give high priority to words not yet learned
+            }
+          }
+        },
+        {
+          $addFields: {
+            weight: { $subtract: [101, "$weight"] }
+          }
+        },
+        // Weighted random sampling using a random sort score
+        {
+          $addFields: {
+            randomSortField: { $multiply: ['$weight', { $rand: {} }] }
+          }
+        },
+        // Sort by the random score and take the top N
+        { $sort: { randomSortField: -1 } },
+        { $limit: count },
+
+        // Clean up helper fields
+        {
+          $project: {
+            wordDetails: 0,
+            listContext: 0,
+            weight: 0,
+            randomSortField: 0
+          }
+        }
       ]);
 
       if (quizzes.length < count) {
-        throw new Error(`Not enough local quizzes found for this list. Found ${quizzes.length}, but required ${count}.`);
+        console.warn(`Not enough local quizzes found for this list. Found ${quizzes.length}, but required ${count}.`);
+        // Not throwing an error, just returning what we have.
       }
 
       // Map _id to id for frontend compatibility
