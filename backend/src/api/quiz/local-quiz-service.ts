@@ -63,7 +63,7 @@ class LocalQuizService {
         },
         {
           $addFields: {
-            weight: { $subtract: [101, "$weight"] }
+            weight: { $pow: [{ $subtract: [101, "$weight"] }, 1.6] }
           }
         },
         // Weighted random sampling using a random sort score
