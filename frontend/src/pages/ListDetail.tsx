@@ -57,6 +57,27 @@ const fadeIn = {
   visible: { opacity: 1, y: 0 }
 };
 
+const sortWords = (words: Word[]): Word[] => {
+  return [...words].sort((a, b) => {
+    const lpA = a.learnedPoint || 0;
+    const lpB = b.learnedPoint || 0;
+
+    if (lpA !== lpB) {
+      return lpA - lpB;
+    }
+
+    try {
+      // Assuming id is a MongoDB ObjectId, the first 8 hex chars are a timestamp.
+      const timestampA = parseInt(a.id.substring(0, 8), 16);
+      const timestampB = parseInt(b.id.substring(0, 8), 16);
+      return timestampB - timestampA; // Sort by newest first
+    } catch (error) {
+      // Fallback if id is not in the expected format
+      return 0;
+    }
+  });
+};
+
 export const ListDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -92,7 +113,7 @@ export const ListDetail = () => {
         ]);
         
         setList(listData);
-        setWords(wordsData);
+        setWords(sortWords(wordsData));
         setUserPreferences(preferencesData);
         setLocalStats(statsData);
       } catch (error) {
@@ -116,7 +137,7 @@ export const ListDetail = () => {
   const handleAddWord = async (word: string): Promise<void> => {
     try {
       const newWord = await apiService.addWord(id!, word);
-      setWords(prevWords => [newWord, ...prevWords]);
+      setWords(prevWords => sortWords([newWord, ...prevWords]));
       toast({
         title: 'Word added successfully',
         status: 'success',
@@ -418,7 +439,7 @@ export const ListDetail = () => {
         
         // Refetch words to update the list
         const wordsData = await apiService.getWords(id);
-        setWords(wordsData);
+        setWords(sortWords(wordsData));
 
         toast.update(toastId, {
           title: 'Words Imported Successfully',
