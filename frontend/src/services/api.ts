@@ -62,6 +62,7 @@ interface QuizQuestionsResponse {
 
 // API service for WordPecker app
 export const apiService = {
+  getBaseUrl: (): string | undefined => api.defaults.baseURL,
   // Lists
   getLists: (): ApiResponse<WordList[]> => api.get('/api/lists'),
   getList: (id: string): ApiResponse<WordList> => api.get(`/api/lists/${id}`),

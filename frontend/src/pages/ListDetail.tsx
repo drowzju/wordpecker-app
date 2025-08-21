@@ -22,7 +22,8 @@ import {
   FormControl,
   FormLabel,
   VStack,
-  SimpleGrid
+  SimpleGrid,
+  Progress
 } from '@chakra-ui/react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -93,6 +94,12 @@ export const ListDetail = () => {
   const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
   const [exerciseMode, setExerciseMode] = useState<'ai' | 'local'>('local');
   const [localStats, setLocalStats] = useState<{ exerciseCount: number, quizCount: number } | null>(null);
+  
+  // New state for audio generation
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+  const [audioProgress, setAudioProgress] = useState({ progress: 0, message: '' });
+  const [finalAudioUrl, setFinalAudioUrl] = useState<string | null>(null);
+  const eventSourceRef = useRef<EventSource | null>(null);
   
   const { 
     isOpen: isReadingModalOpen, 
@@ -231,6 +238,55 @@ export const ListDetail = () => {
     } finally {
       setGeneratingReading(false);
     }
+  };
+
+  const handleGenerateAudio = () => {
+    if (!id) return;
+
+    setIsGeneratingAudio(true);
+    setAudioProgress({ progress: 0, message: 'Starting...' });
+    setFinalAudioUrl(null);
+
+    const url = `${apiService.getBaseUrl()}/api/lists/${id}/pronunciation-audio`;
+    const eventSource = new EventSource(url, { withCredentials: true });
+    eventSourceRef.current = eventSource;
+
+    eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        setAudioProgress({ progress: data.progress, message: data.message });
+
+        if (data.downloadUrl) {
+            setFinalAudioUrl(data.downloadUrl);
+            setIsGeneratingAudio(false);
+            eventSource.close();
+        }
+    };
+
+    eventSource.addEventListener('error', (event: any) => {
+        const data = JSON.parse(event.data);
+        toast({
+            title: 'Error Generating Audio',
+            description: data.message || 'An unknown error occurred.',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+        });
+        setIsGeneratingAudio(false);
+        eventSource.close();
+    });
+
+    eventSource.onerror = (err) => {
+        console.error('EventSource failed:', err);
+        toast({
+            title: 'Connection Error',
+            description: 'Could not connect to the server for audio generation.',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+        });
+        setIsGeneratingAudio(false);
+        eventSource.close();
+    };
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -739,6 +795,18 @@ export const ListDetail = () => {
               Light Reading
             </Button>
             <Button 
+              variant="ghost"
+              leftIcon={<FaDownload />}
+              colorScheme="cyan"
+              _hover={{ transform: 'translateY(-2px)' }}
+              transition="all 0.2s"
+              size="lg"
+              isDisabled={words.length === 0 || isGeneratingAudio}
+              onClick={handleGenerateAudio}
+            >
+              Download Audio
+            </Button>
+            <Button 
               variant="solid"
               colorScheme="green"
               leftIcon={<FaPlus />}
@@ -751,6 +819,28 @@ export const ListDetail = () => {
             </Button>
           </Flex>
         </Flex>
+
+        {isGeneratingAudio && (
+          <Box my={4}>
+              <Text color="cyan.300" mb={2}>{audioProgress.message}</Text>
+              <Progress value={audioProgress.progress} colorScheme="cyan" hasStripe isAnimated />
+          </Box>
+        )}
+    
+        {finalAudioUrl && (
+            <Box my={4}>
+                <Button
+                    as="a"
+                    href={`${apiService.getBaseUrl()}${finalAudioUrl}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    colorScheme="green"
+                    leftIcon={<FaDownload />}
+                >
+                    Download Combined Audio Now
+                </Button>
+            </Box>
+        )}
 
         <Box 
           bg="slate.800"

@@ -6,6 +6,7 @@ import { Word } from '../words/model';
 import { Exercise } from '../learn/exerciseModel';
 import { Quiz } from '../quiz/quizModel';
 import { createListSchema, listParamsSchema, updateListSchema } from './schemas';
+import { generatePronunciationAudio } from './controller';
 
 const router = Router();
 
@@ -218,5 +219,7 @@ router.delete('/:id/quizzes', validate(listParamsSchema), async (req: Request, r
     res.status(500).json({ message: 'Error deleting quizzes' });
   }
 });
+
+router.get('/:id/pronunciation-audio', generatePronunciationAudio);
 
 export default router; 

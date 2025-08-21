@@ -6,6 +6,12 @@ import { pipeline } from 'stream/promises';
 import axios from 'axios';
 import { getUserLanguages } from '../utils/getUserLanguages';
 import { textToSpeechQwen } from './qwen'; // Import our new Qwen TTS function
+import { Response } from 'express';
+import { Word, IWord } from '../api/words/model';
+import { Dictionary } from '../api/dictionary/model';
+import ffmpeg from 'fluent-ffmpeg';
+import { execFile } from 'child_process';
+
 
 // These interfaces are compatible with the existing routes
 export interface VoiceConfig {
@@ -63,7 +69,7 @@ class AudioService {
   }
 
   private generateCacheKey(text: string, voice: string, speed: number): string {
-    const content = `qwen-${text}-${voice}-${speed}`; // Add a prefix to avoid collision with old cache
+    const content = `qwen-${text}-${voice}-${speed}`;
     return crypto.createHash('md5').update(content).digest('hex');
   }
 
@@ -115,7 +121,7 @@ class AudioService {
 
   public async generateAudio(request: AudioGenerationRequest): Promise<AudioGenerationResponse> {
     const { text, voice: requestedVoice } = request;
-    const speed = request.speed || 1.0; // Qwen speed is a different parameter, not directly used in the call but in cache key
+    const speed = request.speed || 1.0;
 
     if (!text || text.trim().length === 0) {
       throw new Error('Text is required for audio generation');
@@ -136,14 +142,12 @@ class AudioService {
     }
 
     try {
-      console.log(`Generating Qwen ${language} audio: "${text.substring(0, 50)}..." with voice ${voice}`);
+      console.log(`Generating Qwen ${language} audio: "${text.substring(0, 50)}"... with voice ${voice}`);
       
-      // 1. Call our Qwen TTS service to get the audio stream
       const audioStream = await textToSpeechQwen(text, voice);
 
-      // 2. Save the stream to the cache file
       const writer = fs.createWriteStream(filePath);
-      await pipeline(audioStream, writer); // Use promise-based pipeline
+      await pipeline(audioStream, writer);
 
       console.log(`Qwen audio generated and cached: ${cacheKey}`);
 
@@ -173,6 +177,121 @@ class AudioService {
     }
 
     return voices;
+  }
+
+  public async generatePronunciationAudioForList(listId: string, res: Response) {
+    // 1. Set SSE headers
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    const sendProgress = (progress: number, message: string, data?: any) => {
+        const eventData = JSON.stringify({ progress, message, ...data });
+        res.write(`data: ${eventData}\n\n`);
+    };
+
+    const tempDir = path.join(this.cacheDir, `temp_${listId}_${Date.now()}`);
+
+    try {
+        const words: IWord[] = await Word.find({ 'ownedByLists.listId': listId });
+        if (words.length === 0) {
+            throw new Error('This list has no words.');
+        }
+        sendProgress(5, `Found ${words.length} words. Fetching pronunciation URLs...`);
+
+        const audioUrls: {word: string, url: string}[] = [];
+        for (const word of words) {
+            const entry = await Dictionary.findOne({ word: word.value });
+            
+            let foundAudioUrl: string | null = null;
+            if (entry && entry.dictionary && Array.isArray(entry.dictionary)) {
+                for (const dictEntry of entry.dictionary) {
+                    if (dictEntry.phonetics && Array.isArray(dictEntry.phonetics)) {
+                        for (const phonetic of dictEntry.phonetics) {
+                            if (phonetic.audio) {
+                                foundAudioUrl = phonetic.audio;
+                                break;
+                            }
+                        }
+                    }
+                    if (foundAudioUrl) {
+                        break;
+                    }
+                }
+            }
+
+            if (foundAudioUrl) {
+                audioUrls.push({word: word.value, url: foundAudioUrl});
+            }
+        }
+        sendProgress(20, `Found ${audioUrls.length} pronunciation files. Downloading...`);
+
+        fs.mkdirSync(tempDir, { recursive: true });
+
+        const downloadedFiles: string[] = [];
+        for (let i = 0; i < audioUrls.length; i++) {
+            const item = audioUrls[i];
+            const filePath = path.join(tempDir, `${i}.mp3`);
+            try {
+                // Using curl directly as the final and most reliable method.
+                await new Promise<void>((resolve, reject) => {
+                    execFile('curl', ['-L', '-o', filePath, item.url], (error, stdout, stderr) => {
+                        if (error) {
+                            reject(new Error(`curl failed for ${item.url}: ${stderr || error.message}`));
+                            return;
+                        }
+                        resolve();
+                    });
+                });
+                downloadedFiles.push(filePath);
+                sendProgress(20 + Math.round((i / audioUrls.length) * 40), `Downloaded (${i + 1}/${audioUrls.length}): ${item.word}`);
+            } catch (downloadError) {
+                console.warn(`Failed to download ${item.url}`, downloadError);
+                sendProgress(20 + Math.round((i / audioUrls.length) * 40), `Failed to download: ${item.word}`);
+            }
+        }
+
+        if (downloadedFiles.length === 0) {
+            throw new Error('No valid pronunciation files could be downloaded.');
+        }
+
+        sendProgress(60, 'All files downloaded. Combining audio, this may take a moment...');
+        const outputFileName = `list_${listId}_pronunciations.mp3`;
+        const outputFilePath = path.join(this.cacheDir, outputFileName);
+        
+        const command = ffmpeg();
+        // Use the user-provided silent audio file.
+        const silenceFile = path.resolve(__dirname, '../assets/1-second-of-silence.mp3');
+
+        if (!fs.existsSync(silenceFile)) {
+            throw new Error(`Silent audio file not found at ${silenceFile}`);
+        }
+
+        downloadedFiles.forEach((file: string) => {
+            command.input(file).input(silenceFile).input(file).input(silenceFile).input(file).input(silenceFile);
+        });
+
+        await new Promise<void>((resolve, reject) => {
+            command
+                .on('end', () => {
+                    sendProgress(100, 'Audio combination complete!', { downloadUrl: `/api/audio/download/${outputFileName}` });
+                    resolve();
+                })
+                .on('error', (err) => reject(new Error('FFmpeg error: ' + err.message)))
+                .mergeToFile(outputFilePath, tempDir);
+        });
+
+    } catch (error: any) {
+        console.error('Error generating pronunciation audio:', error);
+        sendProgress(100, `Error: ${error.message}`, { error: true });
+        res.write(`event: error\ndata: ${JSON.stringify({ message: error.message })}\n\n`);
+    } finally {
+        if (fs.existsSync(tempDir)) {
+            fs.rm(tempDir, { recursive: true, force: true }, () => {});
+        }
+        res.end();
+    }
   }
 }
 

@@ -2,6 +2,8 @@ import { Router, Request, Response } from 'express';
 import { body, query, param, validationResult } from 'express-validator';
 import rateLimit from 'express-rate-limit';
 import { audioService, AudioGenerationRequest } from '../../services/audioService';
+import path from 'path';
+import fs from 'fs';
 
 const router = Router();
 
@@ -333,5 +335,32 @@ router.post('/sentence-pronunciation',
     }
   }
 );
+
+/**
+ * GET /api/audio/download/:filename
+ * Downloads a generated audio file and then deletes it.
+ */
+router.get('/download/:filename', (req: Request, res: Response) => {
+    const { filename } = req.params;
+    // Security check: ensure filename does not contain path traversal characters
+    if (filename.includes('..')) {
+        return res.status(400).send('Invalid filename.');
+    }
+    const filePath = path.join(process.cwd(), 'audio-cache', filename);
+
+    res.download(filePath, (err) => {
+        if (!err) {
+            // On successful download, delete the file
+            fs.unlink(filePath, (unlinkErr) => {
+                if (unlinkErr) console.error('Error deleting temp audio file:', unlinkErr);
+            });
+        } else {
+            console.error('Error sending file:', err);
+            if (!res.headersSent) {
+              res.status(404).send('File not found.');
+            }
+        }
+    });
+});
 
 export default router;
