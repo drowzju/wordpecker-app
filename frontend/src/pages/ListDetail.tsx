@@ -794,18 +794,41 @@ export const ListDetail = () => {
             >
               Light Reading
             </Button>
-            <Button 
-              variant="ghost"
-              leftIcon={<FaDownload />}
-              colorScheme="cyan"
-              _hover={{ transform: 'translateY(-2px)' }}
-              transition="all 0.2s"
-              size="lg"
-              isDisabled={words.length === 0 || isGeneratingAudio}
-              onClick={handleGenerateAudio}
-            >
-              Download Audio
-            </Button>
+            
+            <Box minW="160px" textAlign="center">
+              {isGeneratingAudio ? (
+                <Box>
+                  <Text color="cyan.300" mb={2} fontSize="sm">{audioProgress.message}</Text>
+                  <Progress value={audioProgress.progress} colorScheme="cyan" hasStripe isAnimated size="sm" borderRadius="md" />
+                </Box>
+              ) : finalAudioUrl ? (
+                <Button
+                    as="a"
+                    href={`${apiService.getBaseUrl()}${finalAudioUrl}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    colorScheme="green"
+                    leftIcon={<FaDownload />}
+                    size="lg"
+                >
+                    Download Now
+                </Button>
+              ) : (
+                <Button 
+                  variant="ghost"
+                  leftIcon={<FaDownload />}
+                  colorScheme="cyan"
+                  _hover={{ transform: 'translateY(-2px)' }}
+                  transition="all 0.2s"
+                  size="lg"
+                  isDisabled={words.length === 0}
+                  onClick={handleGenerateAudio}
+                >
+                  Download Audio
+                </Button>
+              )}
+            </Box>
+
             <Button 
               variant="solid"
               colorScheme="green"
@@ -819,28 +842,6 @@ export const ListDetail = () => {
             </Button>
           </Flex>
         </Flex>
-
-        {isGeneratingAudio && (
-          <Box my={4}>
-              <Text color="cyan.300" mb={2}>{audioProgress.message}</Text>
-              <Progress value={audioProgress.progress} colorScheme="cyan" hasStripe isAnimated />
-          </Box>
-        )}
-    
-        {finalAudioUrl && (
-            <Box my={4}>
-                <Button
-                    as="a"
-                    href={`${apiService.getBaseUrl()}${finalAudioUrl}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    colorScheme="green"
-                    leftIcon={<FaDownload />}
-                >
-                    Download Combined Audio Now
-                </Button>
-            </Box>
-        )}
 
         <Box 
           bg="slate.800"
