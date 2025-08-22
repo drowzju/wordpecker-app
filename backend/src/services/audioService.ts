@@ -227,23 +227,13 @@ class AudioService {
 
         const audioUrls: {word: string, url: string}[] = [];
         for (const word of words) {
-            console.log(`Processing word: "${word.value}"`); // LOG: Start processing word
-            // Use a case-insensitive regular expression for the dictionary lookup
-            const entry = await Dictionary.findOne({ word: new RegExp(`^${word.value}$`, 'i') });
-
-            if (!entry) {
-                console.log(`  -> Dictionary entry not found.`); // LOG: Entry not found
-                continue;
-            }
-
-            const foundAudioUrl = this.extractAudioUrl(entry.dictionary);
+            // The dictionary data is already on the word object itself.
+            const foundAudioUrl = this.extractAudioUrl(word.dictionary);
 
             if (foundAudioUrl) {
                 audioUrls.push({word: word.value, url: foundAudioUrl});
-                console.log(`  -> SUCCESS: Found audio URL: ${foundAudioUrl}`); // LOG: Success
             } else {
-                // LOG: Failure - log the entire dictionary object for debugging
-                console.log(`  -> FAIL: Audio URL not found. Dictionary object:`, JSON.stringify(entry.dictionary, null, 2));
+                console.log(`FAIL: Audio URL not found for word: "${word.value}"`);
             }
         }
         sendProgress(20, `Found ${audioUrls.length} pronunciation files. Downloading...`);
