@@ -247,7 +247,7 @@ export const ListDetail = () => {
     setAudioProgress({ progress: 0, message: 'Starting...' });
     setFinalAudioUrl(null);
 
-    const url = `${apiService.getBaseUrl()}/api/lists/${id}/pronunciation-audio`;
+    const url = `${apiService.getBaseUrl()}/api/lists/${id}/pronunciation-audio?listName=${encodeURIComponent(list?.name || 'list')}`;
     const eventSource = new EventSource(url, { withCredentials: true });
     eventSourceRef.current = eventSource;
 
