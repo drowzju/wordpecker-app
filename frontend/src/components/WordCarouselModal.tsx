@@ -48,6 +48,28 @@ const extractAudioUrl = (dictionaryData: any): string | null => {
   return null;
 };
 
+const extractPhonetic = (dictionaryData: any): string | null => {
+  if (!dictionaryData || !Array.isArray(dictionaryData)) {
+    return null;
+  }
+  for (const entry of dictionaryData) {
+    if (entry.phonetics && Array.isArray(entry.phonetics)) {
+      for (const phonetic of entry.phonetics) {
+        if (phonetic.text) {
+          return phonetic.text;
+        }
+      }
+    }
+    if (entry.dictionary) {
+      const nestedPhonetic = extractPhonetic(entry.dictionary);
+      if (nestedPhonetic) {
+        return nestedPhonetic;
+      }
+    }
+  }
+  return null;
+};
+
 export const WordCarouselModal = ({ isOpen, onClose, words }: WordCarouselModalProps) => {
   const [wordsWithAudio, setWordsWithAudio] = useState<(Word & { audioUrl: string })[]>([]);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -106,15 +128,22 @@ export const WordCarouselModal = ({ isOpen, onClose, words }: WordCarouselModalP
   };
 
   const handleSubmit = () => {
-    if (!inputValue || feedback === 'correct') return;
+    if (!inputValue || feedback === 'correct' || feedback === 'revealed') return;
 
     const currentWord = wordsWithAudio[currentWordIndex].value.toLowerCase();
     if (inputValue.trim().toLowerCase() === currentWord) {
       setFeedback('correct');
-      setTimeout(handleNextWord, 1200); // Wait a bit before moving to the next word
+      setTimeout(handleNextWord, 1200); // Correct: move to next word automatically
     } else {
       setFeedback('incorrect');
+      setTimeout(() => {
+        setFeedback('revealed'); // Incorrect: show the answer
+      }, 1200);
     }
+  };
+
+  const handleShowWord = () => {
+    setFeedback('revealed');
   };
 
   const renderBody = () => {
@@ -126,8 +155,18 @@ export const WordCarouselModal = ({ isOpen, onClose, words }: WordCarouselModalP
     }
 
     let bodyContent;
-    if (feedback === 'incorrect') {
-      bodyContent = <Text color="red.400" fontSize="xl">Try again!</Text>;
+    if (feedback === 'revealed') {
+      const currentWord = wordsWithAudio[currentWordIndex];
+      const phonetic = extractPhonetic(currentWord.dictionary);
+      return (
+        <Flex direction="column" align="start" justify="center" w="full">
+          <Text fontSize="2xl" color="cyan.300" fontWeight="bold">{currentWord.value}</Text>
+          {phonetic && <Text fontSize="lg" color="gray.300" mt={1}>{phonetic}</Text>}
+          <Text fontSize="md" color="gray.400" mt={3}>{currentWord.meaning}</Text>
+        </Flex>
+      );
+    } else if (feedback === 'incorrect') {
+      bodyContent = <Text color="red.400" fontSize="xl">Incorrect!</Text>;
     } else if (feedback === 'correct') {
       bodyContent = <Text color="green.400" fontSize="xl">Correct!</Text>;
     } else {
@@ -153,10 +192,10 @@ export const WordCarouselModal = ({ isOpen, onClose, words }: WordCarouselModalP
           <Flex justify="space-between" align="center">
             <Text>Listen and Type</Text>
             <Flex gap={2}>
-              <Button colorScheme="blue" variant="outline" size="sm" onClick={playCurrentWordAudio} isDisabled={feedback === 'correct'}>
+              <Button colorScheme="blue" variant="outline" size="sm" onClick={playCurrentWordAudio} isDisabled={feedback === 'revealed'}>
                 Replay
               </Button>
-              <Button colorScheme="green" variant="outline" size="sm">
+              <Button colorScheme="green" variant="outline" size="sm" onClick={handleShowWord} isDisabled={feedback === 'revealed'}>
                 Show Word
               </Button>
             </Flex>
@@ -167,26 +206,32 @@ export const WordCarouselModal = ({ isOpen, onClose, words }: WordCarouselModalP
           {renderBody()}
         </ModalBody>
         <ModalFooter>
-          <InputGroup>
-            <Input 
-              placeholder="Type the word you hear"
-              value={inputValue}
-              onChange={(e) => {
-                setInputValue(e.target.value);
-                if (feedback === 'incorrect') setFeedback('');
-              }}
-              onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-              isInvalid={feedback === 'incorrect'}
-              isReadOnly={feedback === 'correct'}
-              focusBorderColor={feedback === 'correct' ? 'green.400' : 'blue.300'}
-              borderColor={feedback === 'incorrect' ? 'red.500' : 'slate.600'}
-            />
-            <InputRightElement width="4.5rem">
-              <Button h="1.75rem" size="sm" onClick={handleSubmit} isLoading={feedback === 'correct'} loadingText="Next">
-                Submit
-              </Button>
-            </InputRightElement>
-          </InputGroup>
+          {feedback === 'revealed' ? (
+            <Button onClick={handleNextWord} colorScheme="blue" w="full">
+              Continue
+            </Button>
+          ) : (
+            <InputGroup>
+              <Input 
+                placeholder="Type the word you hear"
+                value={inputValue}
+                onChange={(e) => {
+                  setInputValue(e.target.value);
+                  if (feedback === 'incorrect') setFeedback('');
+                }}
+                onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+                isInvalid={feedback === 'incorrect'}
+                isReadOnly={feedback === 'correct'}
+                focusBorderColor={feedback === 'correct' ? 'green.400' : 'blue.300'}
+                borderColor={feedback === 'incorrect' ? 'red.500' : 'slate.600'}
+              />
+              <InputRightElement width="4.5rem">
+                <Button h="1.75rem" size="sm" onClick={handleSubmit} isLoading={feedback === 'correct'} loadingText="Next">
+                  Submit
+                </Button>
+              </InputRightElement>
+            </InputGroup>
+          )}
         </ModalFooter>
       </ModalContent>
     </Modal>
