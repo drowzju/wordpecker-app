@@ -189,7 +189,7 @@ export const WordCarouselModal = ({ isOpen, onClose, words }: WordCarouselModalP
       <ModalOverlay />
       <ModalContent bg="slate.800" color="white">
         <ModalHeader>
-          <Flex justify="space-between" align="center">
+          <Flex justify="space-between" align="center" pr={10}>
             <Text>Listen and Type</Text>
             <Flex gap={2}>
               <Button colorScheme="blue" variant="outline" size="sm" onClick={playCurrentWordAudio} isDisabled={feedback === 'revealed'}>
@@ -211,7 +211,7 @@ export const WordCarouselModal = ({ isOpen, onClose, words }: WordCarouselModalP
               Continue
             </Button>
           ) : (
-            <InputGroup>
+            <Flex as="form" onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} w="full" gap={2}>
               <Input 
                 placeholder="Type the word you hear"
                 value={inputValue}
@@ -219,18 +219,15 @@ export const WordCarouselModal = ({ isOpen, onClose, words }: WordCarouselModalP
                   setInputValue(e.target.value);
                   if (feedback === 'incorrect') setFeedback('');
                 }}
-                onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
                 isInvalid={feedback === 'incorrect'}
                 isReadOnly={feedback === 'correct'}
                 focusBorderColor={feedback === 'correct' ? 'green.400' : 'blue.300'}
                 borderColor={feedback === 'incorrect' ? 'red.500' : 'slate.600'}
               />
-              <InputRightElement width="4.5rem">
-                <Button h="1.75rem" size="sm" onClick={handleSubmit} isLoading={feedback === 'correct'} loadingText="Next">
-                  Submit
-                </Button>
-              </InputRightElement>
-            </InputGroup>
+              <Button type="submit" isLoading={feedback === 'correct'} loadingText="Next">
+                Submit
+              </Button>
+            </Flex>
           )}
         </ModalFooter>
       </ModalContent>
