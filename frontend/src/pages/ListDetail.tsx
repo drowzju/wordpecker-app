@@ -30,9 +30,10 @@ import { motion } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
 import { Word, WordList } from '../types';
 import { ArrowBackIcon, DeleteIcon } from '@chakra-ui/icons';
-import { FaGraduationCap, FaGamepad, FaPlus, FaBookOpen, FaDownload, FaUpload } from 'react-icons/fa';
+import { FaGraduationCap, FaGamepad, FaPlus, FaBookOpen, FaDownload, FaUpload, FaPlay } from 'react-icons/fa';
 import { GiTreeBranch } from 'react-icons/gi';
 import { AddWordModal } from '../components/AddWordModal';
+import { WordCarouselModal } from '../components/WordCarouselModal';
 import { ProgressIndicator, OverallProgress } from '../components/ProgressIndicator';
 import { apiService } from '../services/api';
 import { UserPreferences } from '../types';
@@ -84,6 +85,11 @@ export const ListDetail = () => {
   const { id } = useParams<{ id: string }>();
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { 
+    isOpen: isCarouselOpen, 
+    onOpen: onCarouselOpen, 
+    onClose: onCarouselClose 
+  } = useDisclosure();
   
   const [list, setList] = useState<WordList | null>(null);
   const [words, setWords] = useState<Word[]>([]);
@@ -794,6 +800,18 @@ export const ListDetail = () => {
             >
               Light Reading
             </Button>
+            <Button 
+              variant="ghost"
+              leftIcon={<FaPlay />}
+              colorScheme="yellow"
+              _hover={{ transform: 'translateY(-2px)' }}
+              transition="all 0.2s"
+              size="lg"
+              isDisabled={words.length === 0}
+              onClick={onCarouselOpen}
+            >
+              Play
+            </Button>
             
             <Box minW="160px" textAlign="center">
               {isGeneratingAudio ? (
@@ -964,6 +982,12 @@ export const ListDetail = () => {
           onClose={onClose}
           onAddWord={handleAddWord}
           listName={list?.name || ''}
+        />
+
+        <WordCarouselModal
+          isOpen={isCarouselOpen}
+          onClose={onCarouselClose}
+          words={words}
         />
 
         <Modal isOpen={isReadingModalOpen} onClose={onReadingModalClose} size="md">
