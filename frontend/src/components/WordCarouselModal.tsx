@@ -79,6 +79,7 @@ export const WordCarouselModal = ({ isOpen, onClose, words }: WordCarouselModalP
   const [correctWords, setCorrectWords] = useState<Map<string, Word>>(new Map());
   const [incorrectWords, setIncorrectWords] = useState<Map<string, Word>>(new Map());
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleClose = () => {
     onClose(Array.from(correctWords.values()), Array.from(incorrectWords.values()));
@@ -116,14 +117,27 @@ export const WordCarouselModal = ({ isOpen, onClose, words }: WordCarouselModalP
     }
   };
 
-  // Effect to play audio when the current word changes
+  // Effect to handle audio playback and cleanup
   useEffect(() => {
     if (isOpen && wordsWithAudio.length > 0) {
-      // Use a timeout to ensure the modal transition is complete before playing audio
-      const delay = currentWordIndex === 0 ? 300 : 800; // Longer delay for subsequent words
-      setTimeout(() => playCurrentWordAudio(), delay);
+      // If the modal is open, schedule the audio to play.
+      const delay = currentWordIndex === 0 ? 300 : 800;
+      timeoutRef.current = setTimeout(() => {
+        playCurrentWordAudio();
+      }, delay);
     }
-  }, [isOpen, currentWordIndex, wordsWithAudio]);
+
+    // Return a cleanup function.
+    // This runs when the component unmounts or before the effect runs again.
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+  }, [isOpen, currentWordIndex, wordsWithAudio]); // Re-run when modal opens, or word changes
 
   const handleNextWord = () => {
     if (currentWordIndex < wordsWithAudio.length - 1) {
