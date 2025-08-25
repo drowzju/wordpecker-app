@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { body, validationResult } from 'express-validator';
 import { validate } from 'echt';
 import { wordService } from '../../services/wordService';
 import { WordList, IWordList } from './model';
@@ -221,5 +222,31 @@ router.delete('/:id/quizzes', validate(listParamsSchema), async (req: Request, r
 });
 
 router.get('/:id/pronunciation-audio', generatePronunciationAudio);
+
+router.post(
+  '/:id/batch-update-points',
+  [
+    body().isArray().withMessage('Request body must be an array.'),
+    body('*.wordId').isMongoId().withMessage('Each update must have a valid wordId.'),
+    body('*.change').isNumeric().withMessage('Each update must have a numeric change value.'),
+  ],
+  async (req: Request, res: Response) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+
+      const result = await wordService.batchUpdatePoints(id, updates);
+      res.status(200).json({ message: 'Points updated successfully.', result });
+    } catch (error) {
+      console.error('Error batch updating points:', error);
+      res.status(500).json({ message: 'Error batch updating points' });
+    }
+  }
+);
 
 export default router; 

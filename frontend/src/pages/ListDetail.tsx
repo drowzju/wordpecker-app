@@ -23,7 +23,9 @@ import {
   FormLabel,
   VStack,
   SimpleGrid,
-  Progress
+  Progress,
+  UnorderedList,
+  ListItem
 } from '@chakra-ui/react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -88,7 +90,7 @@ export const ListDetail = () => {
   const { 
     isOpen: isCarouselOpen, 
     onOpen: onCarouselOpen, 
-    onClose: onCarouselClose 
+    onClose: originalOnCarouselClose 
   } = useDisclosure();
   
   const [list, setList] = useState<WordList | null>(null);
@@ -534,6 +536,95 @@ export const ListDetail = () => {
       });
     };
     reader.readAsText(file);
+  };
+
+  const handleUpdatePoints = async (correctWords: Word[], incorrectWords: Word[]) => {
+    if (!id) return;
+
+    const correctUpdates = correctWords.map(word => ({ wordId: word.id, change: 5 }));
+    const incorrectUpdates = incorrectWords.map(word => ({ wordId: word.id, change: -15 }));
+    const updates = [...correctUpdates, ...incorrectUpdates];
+
+    if (updates.length === 0) return;
+
+    try {
+      await apiService.batchUpdateLearnedPoints(id, updates);
+      toast({
+        title: 'Learned points updated successfully!',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+      // Refetch words to update progress bars
+      const wordsData = await apiService.getWords(id);
+      setWords(sortWords(wordsData));
+    } catch (error) {
+      toast({
+        title: 'Error updating points',
+        description: 'Could not update learned points. Please try again later.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const handleCarouselClose = (correctWords: Word[], incorrectWords: Word[]) => {
+    originalOnCarouselClose(); // This closes the modal UI
+
+    if (correctWords.length > 0 || incorrectWords.length > 0) {
+      const toastId = 'update-points-toast';
+      if (toast.isActive(toastId)) {
+        return;
+      }
+
+      const renderToastBody = () => {
+        let message = `Update points for ${correctWords.length} correct (+5) and ${incorrectWords.length} incorrect (-15) words?`;
+        if (correctWords.length > 0 && incorrectWords.length === 0) {
+          message = `Update points for ${correctWords.length} correct words (+5)?`;
+        } else if (correctWords.length === 0 && incorrectWords.length > 0) {
+          message = `Update points for ${incorrectWords.length} incorrect words (-15)?`;
+        }
+
+        return (
+          <Box color="white" p={4} bg="blue.800" borderRadius="md" boxShadow="lg">
+            <Heading size="md">Update Learned Points?</Heading>
+            <Text mt={2}>{message}</Text>
+            {incorrectWords.length > 0 && (
+              <Box mt={3}>
+                <Text fontSize="sm" fontWeight="bold">Incorrect words:</Text>
+                <UnorderedList mt={1} spacing={1} stylePosition="inside">
+                  {incorrectWords.map(w => <ListItem key={w.id} fontSize="sm">{w.value}</ListItem>)}
+                </UnorderedList>
+              </Box>
+            )}
+            <Flex mt={4} justify="flex-end" gap={3}>
+              <Button variant="outline" colorScheme="whiteAlpha" size="sm" onClick={() => toast.close(toastId)}>
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                colorScheme="red"
+                onClick={() => {
+                  handleUpdatePoints(correctWords, incorrectWords);
+                  toast.close(toastId);
+                }}
+              >
+                Yes, Update
+              </Button>
+            </Flex>
+          </Box>
+        );
+      };
+
+      toast({
+        id: toastId,
+        duration: null,
+        isClosable: true,
+        position: 'top',
+        render: renderToastBody,
+      });
+    }
   };
 
   const handleExportList = () => {
@@ -986,7 +1077,7 @@ export const ListDetail = () => {
 
         <WordCarouselModal
           isOpen={isCarouselOpen}
-          onClose={onCarouselClose}
+          onClose={handleCarouselClose}
           words={words}
         />
 

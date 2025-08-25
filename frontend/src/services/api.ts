@@ -72,6 +72,8 @@ export const apiService = {
   deleteList: async (listId: string): Promise<void> => {
     await api.delete(`/api/lists/${listId}`);
   },
+  batchUpdateLearnedPoints: (listId: string, updates: { wordId: string; change: number }[]): ApiResponse<{ message: string; result: any }> =>
+    api.post(`/api/lists/${listId}/batch-update-points`, updates),
 
   // Words
   getWords: (listId: string): ApiResponse<Word[]> => api.get(`/api/lists/${listId}/words`),

@@ -89,6 +89,48 @@ class WordService {
 
     return word;
   }
+
+  async batchUpdatePoints(listId: string, updates: { wordId: string; change: number }[]) {
+    if (!updates || updates.length === 0) {
+      return { message: 'No updates provided.' };
+    }
+
+    const wordIds = updates.map(u => new mongoose.Types.ObjectId(u.wordId));
+    const words = await Word.find({ _id: { $in: wordIds } });
+
+    const bulkOps = [];
+
+    for (const word of words) {
+      const updateInfo = updates.find(u => u.wordId === word._id.toString());
+      if (!updateInfo) continue;
+
+      const listInfo = word.ownedByLists.find(l => l.listId.toString() === listId);
+      if (!listInfo) continue;
+
+      const currentPoints = listInfo.learnedPoint || 0;
+      let newPoints = currentPoints + updateInfo.change;
+      
+      // Clamping logic
+      if (newPoints > 100) newPoints = 100;
+      if (newPoints < 0) newPoints = 0;
+
+      bulkOps.push({
+        updateOne: {
+          filter: { _id: word._id, 'ownedByLists.listId': new mongoose.Types.ObjectId(listId) },
+          update: {
+            $set: { 'ownedByLists.$.learnedPoint': newPoints }
+          }
+        }
+      });
+    }
+
+    if (bulkOps.length === 0) {
+      return { message: 'No valid updates to perform.' };
+    }
+
+    const result = await Word.bulkWrite(bulkOps);
+    return result;
+  }
 }
 
 export const wordService = new WordService();

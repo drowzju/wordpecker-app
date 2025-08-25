@@ -19,7 +19,7 @@ import { Word } from '../types';
 
 interface WordCarouselModalProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose: (correctWords: Word[], incorrectWords: Word[]) => void;
   words: Word[];
 }
 
@@ -76,7 +76,13 @@ export const WordCarouselModal = ({ isOpen, onClose, words }: WordCarouselModalP
   const [isLoading, setIsLoading] = useState(true);
   const [inputValue, setInputValue] = useState('');
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | '' | 'revealed'>('');
+  const [correctWords, setCorrectWords] = useState<Map<string, Word>>(new Map());
+  const [incorrectWords, setIncorrectWords] = useState<Map<string, Word>>(new Map());
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const handleClose = () => {
+    onClose(Array.from(correctWords.values()), Array.from(incorrectWords.values()));
+  };
 
   // Effect to filter words and reset state when the modal opens
   useEffect(() => {
@@ -93,6 +99,8 @@ export const WordCarouselModal = ({ isOpen, onClose, words }: WordCarouselModalP
       setCurrentWordIndex(0);
       setInputValue('');
       setFeedback('');
+      setCorrectWords(new Map());
+      setIncorrectWords(new Map());
       setIsLoading(false);
     }
   }, [isOpen, words]);
@@ -123,19 +131,23 @@ export const WordCarouselModal = ({ isOpen, onClose, words }: WordCarouselModalP
       setInputValue('');
       setFeedback('');
     } else {
-      onClose(); // Close the modal if it was the last word
+      handleClose(); // Close the modal if it was the last word
     }
   };
 
   const handleSubmit = () => {
     if (!inputValue || feedback === 'correct' || feedback === 'revealed') return;
 
-    const currentWord = wordsWithAudio[currentWordIndex].value.toLowerCase();
-    if (inputValue.trim().toLowerCase() === currentWord) {
+    const currentWord = wordsWithAudio[currentWordIndex];
+    if (inputValue.trim().toLowerCase() === currentWord.value.toLowerCase()) {
       setFeedback('correct');
+      // Record the correct word
+      setCorrectWords(prev => new Map(prev).set(currentWord.id, currentWord));
       setTimeout(handleNextWord, 1200); // Correct: move to next word automatically
     } else {
       setFeedback('incorrect');
+      // Record the incorrect word
+      setIncorrectWords(prev => new Map(prev).set(currentWord.id, currentWord));
       setTimeout(() => {
         setFeedback('revealed'); // Incorrect: show the answer
       }, 1200);
@@ -185,7 +197,7 @@ export const WordCarouselModal = ({ isOpen, onClose, words }: WordCarouselModalP
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} isCentered size="xl" closeOnOverlayClick={false}>
+    <Modal isOpen={isOpen} onClose={handleClose} isCentered size="xl" closeOnOverlayClick={false}>
       <ModalOverlay />
       <ModalContent bg="slate.800" color="white">
         <ModalHeader>
