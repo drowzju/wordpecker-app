@@ -541,7 +541,7 @@ export const ListDetail = () => {
   const handleUpdatePoints = async (correctWords: Word[], incorrectWords: Word[]) => {
     if (!id) return;
 
-    const correctUpdates = correctWords.map(word => ({ wordId: word.id, change: 5 }));
+    const correctUpdates = correctWords.map(word => ({ wordId: word.id, change: 10 }));
     const incorrectUpdates = incorrectWords.map(word => ({ wordId: word.id, change: -15 }));
     const updates = [...correctUpdates, ...incorrectUpdates];
 
