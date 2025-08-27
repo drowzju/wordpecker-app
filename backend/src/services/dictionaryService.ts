@@ -232,10 +232,23 @@ export async function getDictionaryDefinition(word: string): Promise<DictionaryD
     }
     return null;
   } catch (error) {
+    console.error(`An error occurred while fetching from Merriam-Webster for "${word}".`);
     if (axios.isAxiosError(error)) {
-      console.error(`Error fetching from Merriam-Webster for "${word}":`, error.response?.status, error.response?.data);
+      // Log detailed axios error information
+      console.error('Axios error details:', JSON.stringify({
+        message: error.message,
+        code: error.code,
+        status: error.response?.status,
+        headers: error.response?.headers,
+        data: error.response?.data,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+        }
+      }, null, 2));
     } else {
-      console.error(`An unexpected error occurred in getDictionaryDefinition for "${word}":`, error);
+      // Log the whole unexpected error object
+      console.error('Unexpected error:', error);
     }
     return null;
   }

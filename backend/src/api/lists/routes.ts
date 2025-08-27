@@ -93,17 +93,26 @@ router.put('/:id', validate(updateListSchema), async (req, res) => {
 router.delete('/:id', validate(listParamsSchema), async (req, res) => {
   try {
     const { id } = req.params;
-    
-    await Promise.all([
-      Word.updateMany({ 'ownedByLists.listId': id }, { $pull: { ownedByLists: { listId: id } } }),
-      Word.deleteMany({ ownedByLists: { $size: 0 } })
-    ]);
 
-    const deleted = await WordList.findByIdAndDelete(id);
-    if (!deleted) return res.status(404).json({ message: 'List not found' });
-    
+    // Step 1: Pull the list reference from all associated words
+    await Word.updateMany({ 'ownedByLists.listId': id }, { $pull: { ownedByLists: { listId: id } } });
+
+    // Step 2: Delete words that are now orphaned (belong to no lists)
+    await Word.deleteMany({ 'ownedByLists.0': { $exists: false } });
+
+    // Step 3: Delete the list itself
+    const deletedList = await WordList.findByIdAndDelete(id);
+    if (!deletedList) {
+      return res.status(404).json({ message: 'List not found' });
+    }
+
+    // Step 4: Also delete associated exercises and quizzes
+    await Exercise.deleteMany({ listId: id });
+    await Quiz.deleteMany({ listId: id });
+
     res.status(204).send();
   } catch (error) {
+    console.error('Error deleting list and associated data:', error);
     res.status(500).json({ message: 'Error deleting list' });
   }
 });
