@@ -164,8 +164,7 @@ export const WordLearningSession: React.FC = () => {
   const moveToNextWord = () => {
     if (currentWordIndex < vocabularyWords.length - 1) {
       setCurrentWordIndex(prev => prev + 1);
-      setShowWordDetails(false);
-      setGeneratedImage(null);
+      setShowWordDetails(false);      
       setCurrentWordDetails(null);
     } else {
       // Session completed

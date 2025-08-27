@@ -16,6 +16,7 @@ import {
   Spinner
 } from '@chakra-ui/react';
 import { Word } from '../types';
+import PronunciationButton from './PronunciationButton';
 
 interface WordCarouselModalProps {
   isOpen: boolean;
@@ -186,7 +187,14 @@ export const WordCarouselModal = ({ isOpen, onClose, words }: WordCarouselModalP
       const phonetic = extractPhonetic(currentWord.dictionary);
       return (
         <Flex direction="column" align="start" justify="center" w="full">
-          <Text fontSize="2xl" color="cyan.300" fontWeight="bold">{currentWord.value}</Text>
+          <Flex align="center" gap={2}>
+            <Text fontSize="2xl" color="cyan.300" fontWeight="bold">{currentWord.value}</Text>
+            <PronunciationButton 
+              text={currentWord.value} 
+              audioUrl={currentWord.audioUrl}
+              size="sm"
+            />
+          </Flex>
           {phonetic && <Text fontSize="lg" color="gray.300" mt={1}>{phonetic}</Text>}
           <Text fontSize="md" color="gray.400" mt={3}>{currentWord.meaning}</Text>
         </Flex>
