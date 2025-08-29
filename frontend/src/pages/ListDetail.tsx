@@ -627,62 +627,7 @@ export const ListDetail = () => {
     }
   };
 
-  const handleExportList = () => {
-    if (!list || !userPreferences) {
-      toast({
-        title: 'Cannot export list',
-        description: 'List data is not fully loaded yet.',
-        status: 'warning',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    // 1. Gather and structure the data
-    const exportData = {
-      words: words.map(({ id, value, meaning }) => ({ id, value, meaning })),
-      context: list.context || '',
-      // Assumes exerciseTypes is an object like { "multiple-choice": true, ... }
-      // Extracts the keys for the enabled exercise types.
-      exerciseTypes: userPreferences.exerciseTypes 
-        ? Object.entries(userPreferences.exerciseTypes)
-            .filter(([, isEnabled]) => isEnabled)
-            .map(([key]) => key)
-        : [],
-      baseLanguage: userPreferences.baseLanguage || 'en',
-      targetLanguage: userPreferences.targetLanguage || 'es',
-    };
-
-    // 2. Convert the object to a formatted JSON string
-    const jsonString = JSON.stringify(exportData, null, 2);
-
-    // 3. Create a Blob from the JSON string
-    const blob = new Blob([jsonString], { type: 'application/json' });
-
-    // 4. Create a temporary URL for the Blob
-    const url = URL.createObjectURL(blob);
-
-    // 5. Create a temporary anchor element to trigger the download
-    const link = document.createElement('a');
-    link.href = url;
-    const fileName = `${list.name.replace(/\s+/g, '_').toLowerCase()}_export.json`;
-    link.download = fileName;
-    document.body.appendChild(link);
-    
-    // 6. Trigger the download and clean up
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    toast({
-      title: 'List exported successfully!',
-      description: `Saved as ${fileName}`,
-      status: 'success',
-      duration: 3000,
-      isClosable: true,
-    });
-  };
+  
 
   if (isLoading) {
     return (
@@ -811,16 +756,7 @@ export const ListDetail = () => {
             >
               Word
             </Button>
-            <Button
-              variant="ghost"
-              colorScheme="blue"
-              leftIcon={<FaDownload />}
-              onClick={handleExportList}
-              isDisabled={!list || !userPreferences}
-              size="md"
-            >
-              List
-            </Button>
+            
             <Button
               variant="ghost"
               colorScheme="red"
