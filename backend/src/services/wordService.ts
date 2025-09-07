@@ -6,7 +6,7 @@ import { getUserLanguages } from '../utils/getUserLanguages';
 import { getDictionaryDefinition } from './dictionaryService';
 
 class WordService {
-  async addWordToList(listId: string, wordValue: string, userId: string, predefinedDefinition?: { definition: string, phonetic?: string, partOfSpeech?: string }) {
+  async addWordToList(listId: string, wordValue: string, userId: string, predefinedData?: { definition: string, phonetic?: string, partOfSpeech?: string, examples?: any[] }) {
     const list = await WordList.findById(listId).lean();
     if (!list) {
       throw new Error('List not found');
@@ -23,12 +23,12 @@ class WordService {
       return word; // Word already exists in the list, do nothing
     }
 
-    if (predefinedDefinition) {
+    if (predefinedData?.definition) {
       // Use predefined definition and supplement with dictionary data
       definitionResult = { 
-        definition: predefinedDefinition.definition,
-        phonetic: predefinedDefinition.phonetic,
-        partOfSpeech: predefinedDefinition.partOfSpeech,
+        definition: predefinedData.definition,
+        phonetic: predefinedData.phonetic,
+        partOfSpeech: predefinedData.partOfSpeech,
       };
       dictionaryData = await getDictionaryDefinition(wordValue);
     } else {
@@ -41,19 +41,19 @@ class WordService {
     // Combine results for storage
     let finalDictionary: any[] = (dictionaryData && Array.isArray(dictionaryData.dictionary)) ? dictionaryData.dictionary : [];
 
-    if (predefinedDefinition?.phonetic) {
+    if (predefinedData?.phonetic) {
       if (finalDictionary.length > 0 && finalDictionary[0]) {
         // If dictionary entries exist, add phonetic to the first one if it's missing
         if (!finalDictionary[0].phonetics || !Array.isArray(finalDictionary[0].phonetics) || finalDictionary[0].phonetics.length === 0) {
-          finalDictionary[0].phonetics = [{ text: predefinedDefinition.phonetic, audio: '' }];
+          finalDictionary[0].phonetics = [{ text: predefinedData.phonetic, audio: '' }];
         }
       } else {
         // If no dictionary entries exist, create a basic one with the phonetic info
         finalDictionary.push({
-          partOfSpeech: predefinedDefinition.partOfSpeech || 'unknown',
+          partOfSpeech: predefinedData.partOfSpeech || 'unknown',
           entryNumber: 1,
-          phonetics: [{ text: predefinedDefinition.phonetic, audio: '' }],
-          definitions: [{ definition: predefinedDefinition.definition, number: '1' }],
+          phonetics: [{ text: predefinedData.phonetic, audio: '' }],
+          definitions: [{ definition: predefinedData.definition, number: '1' }],
         });
       }
     }
@@ -81,6 +81,12 @@ class WordService {
         }],
         definition: definitionResult.definition,
         dictionary: finalDictionary,
+        examples: predefinedData?.examples?.map(ex => ({ 
+          id: new mongoose.Types.ObjectId().toHexString(), 
+          sentence: ex.sentence, 
+          translation: ex.translation,
+          context_and_usage: ex.context_note 
+        })) || []
       };
       word = await Word.create(newWordData);
     }

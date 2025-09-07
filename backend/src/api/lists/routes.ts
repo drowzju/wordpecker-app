@@ -188,7 +188,7 @@ router.post('/:id/import-quizzes', async (req: Request, res: Response) => {
 router.post('/:id/import-words', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { words } = req.body;
+    const { words } = req.body; // CORRECTED: Reverted to destructure the 'words' array from the body object
     const userId = req.headers['user-id'] as string;
 
     if (!words || !Array.isArray(words)) {
@@ -197,11 +197,11 @@ router.post('/:id/import-words', async (req: Request, res: Response) => {
 
     let addedCount = 0;
     for (const wordData of words) {
-      const { word, definition, phonetic, partOfSpeech } = wordData;
+      const { word, definition, phonetic, partOfSpeech, examples } = wordData;
       if (!word || !definition) continue;
 
-      const predefinedDefinition = { definition, phonetic, partOfSpeech };
-      const addedWord = await wordService.addWordToList(id, word, userId, predefinedDefinition);
+      const predefinedData = { definition, phonetic, partOfSpeech, examples };
+      const addedWord = await wordService.addWordToList(id, word, userId, predefinedData);
       if(addedWord) {
         addedCount++;
       }
