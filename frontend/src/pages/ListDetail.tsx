@@ -579,9 +579,9 @@ export const ListDetail = () => {
       }
 
       const renderToastBody = () => {
-        let message = `Update points for ${correctWords.length} correct (+5) and ${incorrectWords.length} incorrect (-15) words?`;
+        let message = `Update points for ${correctWords.length} correct (+10) and ${incorrectWords.length} incorrect (-15) words?`;
         if (correctWords.length > 0 && incorrectWords.length === 0) {
-          message = `Update points for ${correctWords.length} correct words (+5)?`;
+          message = `Update points for ${correctWords.length} correct words (+10)?`;
         } else if (correctWords.length === 0 && incorrectWords.length > 0) {
           message = `Update points for ${incorrectWords.length} incorrect words (-15)?`;
         }
