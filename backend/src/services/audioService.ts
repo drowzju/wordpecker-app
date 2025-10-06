@@ -273,26 +273,41 @@ class AudioService {
         const outputFileName = `${sanitizedListName}_pronunciations.mp3`;
         const outputFilePath = path.join(this.cacheDir, outputFileName);
         
-        const command = ffmpeg();
-        // Use the user-provided silent audio file.
         const silenceFile = path.resolve(__dirname, '../assets/1-second-of-silence.mp3');
 
         if (!fs.existsSync(silenceFile)) {
             throw new Error(`Silent audio file not found at ${silenceFile}`);
         }
 
-        downloadedFiles.forEach((file: string) => {
-            command.input(file).input(silenceFile).input(file).input(silenceFile).input(file).input(silenceFile);
-        });
+        // Create a temporary file listing all the files to concatenate
+        const fileList = downloadedFiles.flatMap(file => {
+            // Normalize paths to use forward slashes, which is safer for ffmpeg's concat demuxer
+            const normalizedFile = file.replace(/\\/g, '/');
+            const normalizedSilenceFile = silenceFile.replace(/\\/g, '/');
+            // Repeat each word 3 times with silence, preserving the original business logic
+            return [
+                `file '${normalizedFile}'`,
+                `file '${normalizedSilenceFile}'`,
+                `file '${normalizedFile}'`,
+                `file '${normalizedSilenceFile}'`,
+                `file '${normalizedFile}'`,
+                `file '${normalizedSilenceFile}'`
+            ];
+        }).join('\n');
+
+        const concatFilePath = path.join(tempDir, 'concat-list.txt');
+        fs.writeFileSync(concatFilePath, fileList);
 
         await new Promise<void>((resolve, reject) => {
-            command
+            ffmpeg()
+                .input(concatFilePath)
+                .inputOptions(['-f concat', '-safe 0']) // Use the concat demuxer
                 .on('end', () => {
                     sendProgress(100, 'Audio combination complete!', { downloadUrl: `/api/audio/download/${outputFileName}` });
                     resolve();
                 })
                 .on('error', (err) => reject(new Error('FFmpeg error: ' + err.message)))
-                .mergeToFile(outputFilePath, tempDir);
+                .save(outputFilePath); // Save the output
         });
 
     } catch (error: any) {
