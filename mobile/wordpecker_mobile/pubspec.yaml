@@ -35,8 +35,8 @@ dependencies:
   flutter_slidable: ^3.0.1
   cached_network_image: ^3.3.0
   
-  # Audio
-  flutter_tts: ^3.8.3
+  # Audio (commented for Windows testing, uncomment for Android/iOS)
+  # flutter_tts: ^3.8.3
   
   # Utilities
   freezed_annotation: ^2.4.1
