@@ -1,0 +1,43 @@
+# <type>(<scope>): <subject>
+# |<----  Limit to 50 chars  ---->|
+
+# Explain why this change is being made
+# |<----   Try To Limit To 72 Characters   ---->|
+
+# Provide links to related issues/tickets
+# Issue: #
+
+# --- COMMIT END ---
+# Type can be:
+#   mobile   - Mobile app changes (Flutter)
+#   web      - Web frontend changes (React)
+#   backend  - Backend service changes (Node.js/Express)
+#   shared   - Shared resources across platforms
+#   all      - Changes affecting all platforms
+#   docs     - Documentation only
+#   ci       - CI/CD configuration
+#   test     - Adding or updating tests
+#   refactor - Code refactoring
+#   fix      - Bug fix
+#   feat     - New feature
+#   chore    - Build process or auxiliary tool changes
+# --------------------
+# Scope examples (optional):
+#   mobile(ui)     - UI changes in mobile app
+#   mobile(db)     - Database changes in mobile app
+#   web(style)     - Styling changes in web app
+#   backend(api)   - API changes in backend
+#   backend(db)    - Database changes in backend
+# --------------------
+# Example commits:
+#   mobile: add word list page
+#   mobile(ui): implement learning mode interface
+#   mobile(db): setup drift database schema
+#   web: update word card component
+#   web(style): improve mobile responsive design
+#   backend: add quiz generation endpoint
+#   backend(api): optimize exercise generation
+#   shared: add new vocabulary templates
+#   all: update project dependencies
+#   docs: update architecture diagram
+#   ci: add flutter build workflow
