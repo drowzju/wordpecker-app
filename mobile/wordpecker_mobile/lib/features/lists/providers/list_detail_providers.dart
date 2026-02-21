@@ -1,10 +1,14 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/providers/local_cache_provider.dart';
 import '../../../core/providers/server_config_provider.dart';
 import '../../../core/services/dio_logger.dart';
 import '../data/list_detail_api.dart';
+import '../domain/models/local_stats.dart';
 import '../domain/models/word_item.dart';
+
+
 
 
 final listDetailApiProvider = Provider<ListDetailApi>((ref) {
@@ -29,6 +33,30 @@ final listDetailApiProvider = Provider<ListDetailApi>((ref) {
 });
 
 final listWordsProvider = FutureProvider.family<List<WordItem>, String>((ref, listId) async {
+  final cache = ref.read(localCacheProvider);
+  final isSynced = await cache.isInitialSyncDone();
+  if (isSynced) {
+    final raw = await cache.loadWordsRaw(listId);
+    if (raw.isNotEmpty) {
+      return raw.map(WordItem.fromJson).toList();
+    }
+  }
+
   final api = ref.watch(listDetailApiProvider);
   return api.fetchWords(listId);
 });
+
+final listLocalStatsProvider = FutureProvider.family<LocalStats, String>((ref, listId) async {
+  final cache = ref.read(localCacheProvider);
+  final isSynced = await cache.isInitialSyncDone();
+  if (isSynced) {
+    final exerciseCount = await cache.countExercises(listId);
+    final quizCount = await cache.countQuizzes(listId);
+    return LocalStats(exerciseCount: exerciseCount, quizCount: quizCount);
+  }
+
+  final api = ref.watch(listDetailApiProvider);
+  return api.fetchLocalStats(listId);
+});
+
+

@@ -1,15 +1,16 @@
+import 'dart:math';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/local_cache_provider.dart';
 import '../../../core/providers/server_config_provider.dart';
 import '../../../core/services/dio_logger.dart';
-import '../data/list_api.dart';
-import '../domain/models/word_list.dart';
+import '../data/learn_api.dart';
+import '../domain/models/learn_exercise.dart';
 
 
-
-final listApiProvider = Provider<ListApi>((ref) {
+final learnApiProvider = Provider<LearnApi>((ref) {
   final config = ref.watch(serverConfigProvider).value;
   if (config == null) {
     throw StateError('服务器未配置');
@@ -25,22 +26,24 @@ final listApiProvider = Provider<ListApi>((ref) {
   );
   dio.interceptors.add(createDioLogger());
 
-  return ListApi(dio);
-
-
+  return LearnApi(dio);
 });
 
-final listsProvider = FutureProvider<List<WordList>>((ref) async {
+const int _localExerciseCount = 15;
+
+final learnExercisesProvider = FutureProvider.family<List<LearnExercise>, String>((ref, listId) async {
   final cache = ref.read(localCacheProvider);
   final isSynced = await cache.isInitialSyncDone();
   if (isSynced) {
-    final raw = await cache.loadListsRaw();
+    final raw = await cache.loadExercisesRaw(listId);
     if (raw.isNotEmpty) {
-      return raw.map(WordList.fromJson).toList();
+      final exercises = raw.map(LearnExercise.fromJson).toList();
+      exercises.shuffle(Random());
+      return exercises.take(_localExerciseCount).toList();
     }
   }
 
-  final api = ref.watch(listApiProvider);
-  return api.fetchLists();
+  final api = ref.watch(learnApiProvider);
+  return api.startLocalLearning(listId);
 });
 

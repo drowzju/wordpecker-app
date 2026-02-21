@@ -79,7 +79,7 @@ const getQuestionTypes = async (userId: string): Promise<QuestionType[]> => {
 router.post('/:listId/start', validate(startQuizSchema), async (req, res) => {
   try {
     const { listId } = req.params;
-    const { mode } = req.body; // 'ai' or 'local'
+    const { mode, count } = req.body as { mode?: string; count?: number }; // 'ai' or 'local'
 
     const list = await WordList.findById(listId).lean();
     if (!list) return res.status(404).json({ message: 'List not found' });
@@ -89,7 +89,7 @@ router.post('/:listId/start', validate(startQuizSchema), async (req, res) => {
 
     if (mode === 'local') {
       try {
-        questions = await localQuizService.getQuizzesFromLocal(listId);
+        questions = await localQuizService.getQuizzesFromLocal(listId, count);
       } catch (error: any) {
         return res.status(400).json({ message: error.message });
       }
@@ -117,13 +117,13 @@ router.post('/:listId/start', validate(startQuizSchema), async (req, res) => {
 router.post('/:listId/more', validate(startQuizSchema), async (req, res) => {
   try {
     const { listId } = req.params;
-    const { mode } = req.body; // 'ai' or 'local'
+    const { mode, count } = req.body as { mode?: string; count?: number }; // 'ai' or 'local'
 
     let questions;
 
     if (mode === 'local') {
       try {
-        questions = await localQuizService.getQuizzesFromLocal(listId);
+        questions = await localQuizService.getQuizzesFromLocal(listId, count);
       } catch (error: any) {
         return res.status(400).json({ message: error.message });
       }

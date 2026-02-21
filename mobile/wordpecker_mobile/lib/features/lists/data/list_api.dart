@@ -18,6 +18,15 @@ class ListApi {
     return data
         .map((item) => WordList.fromJson(Map<String, dynamic>.from(item as Map)))
         .toList();
+  }
 
+  Future<List<Map<String, dynamic>>> fetchListsRaw() async {
+    final response = await dio.get('/api/lists');
+    final data = response.data;
+    if (data is! List) {
+      throw StateError('列表数据格式错误');
+    }
+    return data.map((item) => Map<String, dynamic>.from(item as Map)).toList();
   }
 }
+

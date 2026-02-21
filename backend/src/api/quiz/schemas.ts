@@ -12,7 +12,8 @@ export const listIdSchema = {
 export const startQuizSchema = {
   params: listIdParams,
   body: z.object({
-    mode: z.enum(['ai', 'local']).optional()
+    mode: z.enum(['ai', 'local']).optional(),
+    count: z.number().int().min(1).max(50).optional()
   })
 };
 

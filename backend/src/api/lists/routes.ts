@@ -78,6 +78,50 @@ router.get('/:id/local-stats', validate(listParamsSchema), async (req, res) => {
   }
 });
 
+router.get('/:id/exercises', validate(listParamsSchema), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const exercises = await Exercise.find({ listId: id }).lean();
+
+    const data = exercises.map((exercise: any) => {
+      const { _id, ...rest } = exercise;
+      return {
+        ...rest,
+        id: _id.toString(),
+        listId: rest.listId?.toString() ?? id,
+        wordId: rest.wordId?.toString()
+      };
+    });
+
+    res.json(data);
+  } catch (error) {
+    console.error('Error fetching exercises:', error);
+    res.status(500).json({ message: 'Error fetching exercises' });
+  }
+});
+
+router.get('/:id/quizzes', validate(listParamsSchema), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const quizzes = await Quiz.find({ listId: id }).lean();
+
+    const data = quizzes.map((quiz: any) => {
+      const { _id, ...rest } = quiz;
+      return {
+        ...rest,
+        id: _id.toString(),
+        listId: rest.listId?.toString() ?? id,
+        wordId: rest.wordId?.toString()
+      };
+    });
+
+    res.json(data);
+  } catch (error) {
+    console.error('Error fetching quizzes:', error);
+    res.status(500).json({ message: 'Error fetching quizzes' });
+  }
+});
+
 router.put('/:id', validate(updateListSchema), async (req, res) => {
   try {
     const { id } = req.params;
