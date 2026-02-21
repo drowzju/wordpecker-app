@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/local_cache_provider.dart';
 import '../../lists/providers/list_providers.dart';
 import '../../lists/providers/list_detail_providers.dart';
+import '../../quiz/providers/quiz_providers.dart';
+
 
 class SyncProgress {
   final String stage;
@@ -87,9 +89,45 @@ final syncMetaProvider = FutureProvider<SyncMeta>((ref) async {
   return SyncMeta(isSynced: synced, lastSyncAt: lastSyncAt);
 });
 
+final pendingSyncProvider = AsyncNotifierProvider<PendingSyncNotifier, void>(
+  PendingSyncNotifier.new,
+);
+
+class PendingSyncNotifier extends AsyncNotifier<void> {
+  @override
+  Future<void> build() async {}
+
+  Future<int> syncPendingLearnedPoints() async {
+    state = const AsyncValue.loading();
+    try {
+      final cache = ref.read(localCacheProvider);
+      final pending = await cache.loadAllPendingLearnedPoints();
+      if (pending.isEmpty) {
+        state = const AsyncValue.data(null);
+        return 0;
+      }
+
+      final api = ref.read(quizApiProvider);
+      int total = 0;
+      for (final entry in pending.entries) {
+        await api.updateLearnedPoints(entry.key, entry.value);
+        total += entry.value.length;
+        await cache.clearPendingLearnedPoints(entry.key);
+      }
+
+      state = const AsyncValue.data(null);
+      return total;
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+      rethrow;
+    }
+  }
+}
+
 final initialSyncProvider = AsyncNotifierProvider<InitialSyncNotifier, SyncProgress>(
   InitialSyncNotifier.new,
 );
+
 
 class InitialSyncNotifier extends AsyncNotifier<SyncProgress> {
   bool _syncing = false;

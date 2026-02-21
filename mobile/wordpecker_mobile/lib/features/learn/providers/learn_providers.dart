@@ -33,17 +33,14 @@ const int _localExerciseCount = 15;
 
 final learnExercisesProvider = FutureProvider.family<List<LearnExercise>, String>((ref, listId) async {
   final cache = ref.read(localCacheProvider);
-  final isSynced = await cache.isInitialSyncDone();
-  if (isSynced) {
-    final raw = await cache.loadExercisesRaw(listId);
-    if (raw.isNotEmpty) {
-      final exercises = raw.map(LearnExercise.fromJson).toList();
-      exercises.shuffle(Random());
-      return exercises.take(_localExerciseCount).toList();
-    }
+  final raw = await cache.loadExercisesRaw(listId);
+  if (raw.isNotEmpty) {
+    final exercises = raw.map(LearnExercise.fromJson).toList();
+    exercises.shuffle(Random());
+    return exercises.take(_localExerciseCount).toList();
   }
 
-  final api = ref.watch(learnApiProvider);
-  return api.startLocalLearning(listId);
+  return [];
 });
+
 

@@ -33,28 +33,30 @@ const int localQuizCount = 5;
 
 
 
-final quizQuestionsProvider = FutureProvider.family<List<QuizQuestion>, String>((ref, listId) async {
-
-
+final quizStartProvider = FutureProvider.family<QuizStartResult, String>((ref, listId) async {
   final cache = ref.read(localCacheProvider);
-  final isSynced = await cache.isInitialSyncDone();
-  if (isSynced) {
-    final raw = await cache.loadQuizzesRaw(listId);
-    if (raw.isNotEmpty) {
-      final quizzes = raw.map(QuizQuestion.fromJson).toList();
-      final words = await cache.loadWordsRaw(listId);
-      final learnedPoints = {
-        for (final word in words)
-          word['id']?.toString() ?? '': (word['learnedPoint'] as num?)?.toInt() ?? 0,
-      };
-      return selectWeightedQuiz(quizzes, learnedPoints, localQuizCount);
-
-    }
+  final raw = await cache.loadQuizzesRaw(listId);
+  if (raw.isNotEmpty) {
+    final quizzes = raw.map(QuizQuestion.fromJson).toList();
+    final words = await cache.loadWordsRaw(listId);
+    final learnedPoints = {
+      for (final word in words)
+        word['id']?.toString() ?? '': (word['learnedPoint'] as num?)?.toInt() ?? 0,
+    };
+    final totalQuestions = words.length;
+    return QuizStartResult(
+      questions: selectWeightedQuiz(quizzes, learnedPoints, localQuizCount),
+      totalQuestions: totalQuestions,
+    );
   }
 
-  final api = ref.watch(quizApiProvider);
-  return api.startLocalQuiz(listId);
+  return const QuizStartResult(questions: [], totalQuestions: 0);
 });
+
+
+
+
+
 
 List<QuizQuestion> _selectWeightedQuiz(
   List<QuizQuestion> source,

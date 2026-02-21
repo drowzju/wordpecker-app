@@ -32,15 +32,18 @@ final listApiProvider = Provider<ListApi>((ref) {
 
 final listsProvider = FutureProvider<List<WordList>>((ref) async {
   final cache = ref.read(localCacheProvider);
-  final isSynced = await cache.isInitialSyncDone();
-  if (isSynced) {
-    final raw = await cache.loadListsRaw();
-    if (raw.isNotEmpty) {
-      return raw.map(WordList.fromJson).toList();
-    }
+  final raw = await cache.loadListsRaw();
+  if (raw.isNotEmpty) {
+    return raw.map(WordList.fromJson).toList();
+  }
+
+  final config = ref.watch(serverConfigProvider).value;
+  if (config == null) {
+    return [];
   }
 
   final api = ref.watch(listApiProvider);
   return api.fetchLists();
 });
+
 

@@ -51,6 +51,12 @@ class ListDetailPage extends ConsumerWidget {
             );
           }
           final statsAsync = ref.watch(listLocalStatsProvider(list.id));
+          final sortedWords = [...words]
+            ..sort((a, b) {
+              final diff = a.learnedPoint.compareTo(b.learnedPoint);
+              if (diff != 0) return diff;
+              return a.value.compareTo(b.value);
+            });
 
           return RefreshIndicator(
             onRefresh: () async {
@@ -59,25 +65,23 @@ class ListDetailPage extends ConsumerWidget {
             },
             child: ListView.separated(
               padding: const EdgeInsets.all(16),
-              itemCount: words.length + 1,
+              itemCount: sortedWords.length + 1,
               itemBuilder: (context, index) {
                 if (index == 0) {
                   return _ActionPanel(
                     list: list,
-                    words: words,
+                    words: sortedWords,
                     statsAsync: statsAsync,
                   );
-
-
                 }
-                final word = words[index - 1];
+                final word = sortedWords[index - 1];
                 return _WordItemTile(word: word);
               },
               separatorBuilder: (_, __) => const SizedBox(height: 12),
             ),
           );
-
         },
+
       ),
     );
   }
@@ -164,11 +168,13 @@ class _ActionPanel extends StatelessWidget {
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => PlayPage(
+                              listId: list.id,
                               listName: list.name,
                               words: words,
                             ),
                           ),
                         );
+
                       }
                     : null,
                 icon: const Icon(Icons.play_arrow),

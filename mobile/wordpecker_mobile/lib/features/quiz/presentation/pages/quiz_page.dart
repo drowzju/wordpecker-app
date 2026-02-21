@@ -10,6 +10,9 @@ import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/loading_view.dart';
 import '../../domain/models/quiz_question.dart';
 import '../../providers/quiz_providers.dart';
+import '../../../lists/providers/list_detail_providers.dart';
+import '../../../lists/providers/list_providers.dart';
+
 
 
 class QuizPage extends ConsumerStatefulWidget {
@@ -26,7 +29,14 @@ class QuizPage extends ConsumerStatefulWidget {
   ConsumerState<QuizPage> createState() => _QuizPageState();
 }
 
+enum _ExitAction {
+  cancel,
+  exitWithoutSave,
+  saveAndExit,
+}
+
 class _QuizPageState extends ConsumerState<QuizPage> {
+
   int _currentIndex = 0;
   String? _selectedOption;
   final TextEditingController _textController = TextEditingController();
@@ -38,13 +48,22 @@ class _QuizPageState extends ConsumerState<QuizPage> {
   final List<QuizQuestion> _questions = [];
   bool _initialized = false;
   bool _loadingMore = false;
+  int _totalQuestions = 0;
+  bool _isCompleted = false;
+  bool _exitInProgress = false;
+  bool _allowExit = false;
+
+
+
+
 
 
   @override
   void initState() {
     super.initState();
     Future.microtask(() {
-      ref.invalidate(quizQuestionsProvider(widget.listId));
+      ref.invalidate(quizStartProvider(widget.listId));
+
     });
   }
 
@@ -147,18 +166,38 @@ class _QuizPageState extends ConsumerState<QuizPage> {
   }
 
 
-  Future<void> _finishQuiz() async {
-    final api = ref.read(quizApiProvider);
-    if (_results.isNotEmpty) {
-      await api.updateLearnedPoints(widget.listId, _results);
-    }
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('测验完成，进度已更新')),
-      );
-      Navigator.of(context).maybePop();
+  Future<void> _finishQuiz({bool showToast = true, bool popOnFinish = true}) async {
+    final cache = ref.read(localCacheProvider);
+    try {
+      if (_results.isNotEmpty) {
+        await cache.applyLearnedPointChanges(widget.listId, _results);
+        await cache.addPendingLearnedPoints(widget.listId, _results);
+      }
+      if (mounted && showToast) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('进度已保存到本地，待同步')),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('保存进度失败，但已退出测验')),
+        );
+      }
+    } finally {
+      if (mounted && popOnFinish) {
+        ref.invalidate(listsProvider);
+        ref.invalidate(listWordsProvider(widget.listId));
+        _allowExit = true;
+        Navigator.of(context).pop();
+      }
+
     }
   }
+
+
+
+
 
   void _showSnack(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -166,11 +205,68 @@ class _QuizPageState extends ConsumerState<QuizPage> {
     );
   }
 
+  Future<void> _handleExit() async {
+    if (_exitInProgress) return;
+    _exitInProgress = true;
+    try {
+      final hasProgress = _results.isNotEmpty;
+      if (!mounted) return;
+
+      if (!hasProgress) {
+        _allowExit = true;
+        Navigator.of(context).pop();
+        return;
+      }
+
+
+      final action = await showDialog<_ExitAction>(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('退出测验'),
+            content: const Text('你有未保存的进度，确定要退出吗？'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(_ExitAction.cancel),
+                child: const Text('继续答题'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(_ExitAction.exitWithoutSave),
+                child: const Text('不保存退出'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(_ExitAction.saveAndExit),
+                child: const Text('保存并退出'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (!mounted || action == null || action == _ExitAction.cancel) return;
+      if (action == _ExitAction.exitWithoutSave) {
+        ref.invalidate(listsProvider);
+        ref.invalidate(listWordsProvider(widget.listId));
+        _allowExit = true;
+        Navigator.of(context).pop();
+        return;
+      }
+
+      await _finishQuiz(showToast: false);
+
+    } finally {
+      _exitInProgress = false;
+    }
+  }
+
+
+
   Widget _buildMatchingSummary(
     BuildContext context,
     List<List<String>> pairs,
     Map<String, String> userPairs,
   ) {
+
     int correctCount = 0;
     for (final pair in pairs) {
       if (userPairs[pair[0]] == pair[1]) {
@@ -231,47 +327,40 @@ class _QuizPageState extends ConsumerState<QuizPage> {
   }
 
 
-  Future<void> _loadMoreQuestions() async {
-    if (_loadingMore) return;
+  Future<bool> _loadMoreQuestions() async {
+    if (_loadingMore) return false;
     setState(() => _loadingMore = true);
 
     try {
       List<QuizQuestion> more = [];
       final cache = ref.read(localCacheProvider);
-      final isSynced = await cache.isInitialSyncDone();
-
-      if (isSynced) {
-        final raw = await cache.loadQuizzesRaw(widget.listId);
-        if (raw.isNotEmpty) {
-          final all = raw.map(QuizQuestion.fromJson).toList();
-          final existingIds = _questions.map((q) => q.id).toSet();
-          final remaining = all.where((q) => !existingIds.contains(q.id)).toList();
-          if (remaining.isNotEmpty) {
-            final words = await cache.loadWordsRaw(widget.listId);
-            final learnedPoints = {
-              for (final word in words)
-                word['id']?.toString() ?? '': (word['learnedPoint'] as num?)?.toInt() ?? 0,
-            };
-            more = selectWeightedQuiz(remaining, learnedPoints, localQuizCount);
-          }
+      final raw = await cache.loadQuizzesRaw(widget.listId);
+      if (raw.isNotEmpty) {
+        final all = raw.map(QuizQuestion.fromJson).toList();
+        final existingIds = _questions.map((q) => q.id).toSet();
+        final remaining = all.where((q) => !existingIds.contains(q.id)).toList();
+        if (remaining.isNotEmpty) {
+          final words = await cache.loadWordsRaw(widget.listId);
+          final learnedPoints = {
+            for (final word in words)
+              word['id']?.toString() ?? '': (word['learnedPoint'] as num?)?.toInt() ?? 0,
+          };
+          more = selectWeightedQuiz(remaining, learnedPoints, localQuizCount);
         }
-      } else {
-        final api = ref.read(quizApiProvider);
-        more = await api.fetchMoreLocalQuiz(widget.listId);
       }
 
+
       if (more.isEmpty) {
-        _showSnack('没有更多题目了');
-        return;
+        return false;
       }
 
       setState(() {
         _questions.addAll(more);
-        _currentIndex += 1;
-        _resetAnswer();
       });
+      return true;
     } catch (error) {
       _showSnack('加载失败：${error.toString()}');
+      return false;
     } finally {
       if (mounted) {
         setState(() => _loadingMore = false);
@@ -280,35 +369,63 @@ class _QuizPageState extends ConsumerState<QuizPage> {
   }
 
 
+
   @override
   Widget build(BuildContext context) {
-    final questionsAsync = ref.watch(quizQuestionsProvider(widget.listId));
+    final questionsAsync = ref.watch(quizStartProvider(widget.listId));
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.listName),
-      ),
-      body: questionsAsync.when(
+
+    return WillPopScope(
+      onWillPop: () async {
+        if (_allowExit) return true;
+        await _handleExit();
+        return _allowExit;
+      },
+
+
+
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.listName),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: _handleExit,
+        ),
+
+
+        ),
+
+        body: questionsAsync.when(
+
         loading: () => const LoadingView(message: '正在加载本地测验...'),
         error: (error, stackTrace) => ErrorView(
           message: '加载失败，请稍后重试。',
           details: error.toString(),
-          onRetry: () => ref.invalidate(quizQuestionsProvider(widget.listId)),
+          onRetry: () => ref.invalidate(quizStartProvider(widget.listId)),
+
         ),
-        data: (questions) {
-          final displayQuestions = _initialized ? _questions : questions;
-          if (!_initialized && questions.isNotEmpty) {
+        data: (result) {
+          final displayQuestions = _initialized ? _questions : result.questions;
+          if (!_initialized) {
+            _isCompleted = false;
+          }
+
+          if (!_initialized && result.questions.isNotEmpty) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted && !_initialized) {
                 setState(() {
                   _questions
                     ..clear()
-                    ..addAll(questions);
+                    ..addAll(result.questions);
+                  _totalQuestions = result.totalQuestions;
+                  _isCompleted = false;
                   _initialized = true;
+
                 });
               }
             });
           }
+
 
           if (displayQuestions.isEmpty) {
             return const EmptyView(
@@ -317,20 +434,28 @@ class _QuizPageState extends ConsumerState<QuizPage> {
             );
           }
 
+          if (_currentIndex >= displayQuestions.length) {
+            return const LoadingView(message: '正在加载更多题目...');
+          }
+
+
+          final totalQuestions = _totalQuestions > 0 ? _totalQuestions : displayQuestions.length;
           final safeIndex = _currentIndex.clamp(0, displayQuestions.length - 1);
           final question = displayQuestions[safeIndex];
 
           final isMatching = question.type == 'matching';
           final options = _resolveOptions(question);
           final pairs = _resolvePairs(question);
-          final isLastQuestion = safeIndex >= displayQuestions.length - 1;
           final isCorrect = _showResult ? _isCorrect(question) : false;
+
 
           return ListView(
 
+
             padding: const EdgeInsets.all(20),
             children: [
-              Text('第 ${safeIndex + 1} / ${displayQuestions.length} 题'),
+              Text('第 ${safeIndex + 1} / $totalQuestions 题'),
+
 
               const SizedBox(height: 12),
               Text(
@@ -422,60 +547,116 @@ class _QuizPageState extends ConsumerState<QuizPage> {
               ],
 
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: () {
-                        if (!_showResult) {
-                          setState(() => _showResult = true);
-                          return;
-                        }
-
-                        if (question.wordId != null) {
-                          _results.add({
-                            'wordId': question.wordId,
-                            'correct': _isCorrect(question),
-                          });
-                        }
-
-                        if (safeIndex < displayQuestions.length - 1) {
-                          setState(() {
-                            _currentIndex = safeIndex + 1;
-                            _resetAnswer();
-                          });
-                        } else {
-                          _finishQuiz();
-                        }
-
-                      },
-
-                      child: Text(_showResult ? '下一题' : '提交答案'),
+              if (_isCompleted && _showResult)
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () async {
+                          final loaded = await _loadMoreQuestions();
+                          if (loaded) {
+                            if (!mounted) return;
+                            setState(() {
+                              _isCompleted = false;
+                              _currentIndex = safeIndex + 1;
+                              _resetAnswer();
+                            });
+                          } else {
+                            _showSnack('没有更多题目了');
+                          }
+                        },
+                        child: const Text('继续测验'),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              if (_showResult && isLastQuestion) ...[
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: () async {
+                          await _finishQuiz();
+                        },
+                        child: const Text('保存并完成'),
+                      ),
+                    ),
+                  ],
+                )
+              else
+                Row(
+                  children: [
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: () async {
+                          if (!_showResult) {
+                            setState(() => _showResult = true);
+                            return;
+                          }
+
+                          if (question.wordId != null) {
+                            _results.add({
+                              'wordId': question.wordId,
+                              'correct': _isCorrect(question),
+                            });
+                          }
+
+                          if (safeIndex < displayQuestions.length - 1) {
+                            setState(() {
+                              _isCompleted = false;
+                              _currentIndex = safeIndex + 1;
+                              _resetAnswer();
+                            });
+                            return;
+                          }
+
+                          if (safeIndex + 1 < totalQuestions) {
+                            final loaded = await _loadMoreQuestions();
+                            if (loaded) {
+                              if (!mounted) return;
+                              setState(() {
+                                _isCompleted = false;
+                                _currentIndex = safeIndex + 1;
+                                _resetAnswer();
+                              });
+                            } else {
+                              setState(() => _isCompleted = true);
+                            }
+
+                            return;
+                          }
+
+                          setState(() => _isCompleted = true);
+                        },
+
+
+                        child: Text(_showResult ? '下一题' : '提交答案'),
+                      ),
+                    ),
+                  ],
+                ),
+
+              if (_loadingMore) ...[
                 const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: _loadingMore ? null : _loadMoreQuestions,
-                  icon: _loadingMore
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.add),
-                  label: const Text('继续加载更多题目'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    SizedBox(width: 8),
+                    Text('正在加载更多题目...'),
+                  ],
                 ),
               ],
+
             ],
           );
 
 
         },
       ),
-    );
+    ),
+  );
+
   }
 }
 

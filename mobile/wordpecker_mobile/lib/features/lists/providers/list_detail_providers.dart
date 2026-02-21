@@ -34,29 +34,20 @@ final listDetailApiProvider = Provider<ListDetailApi>((ref) {
 
 final listWordsProvider = FutureProvider.family<List<WordItem>, String>((ref, listId) async {
   final cache = ref.read(localCacheProvider);
-  final isSynced = await cache.isInitialSyncDone();
-  if (isSynced) {
-    final raw = await cache.loadWordsRaw(listId);
-    if (raw.isNotEmpty) {
-      return raw.map(WordItem.fromJson).toList();
-    }
+  final raw = await cache.loadWordsRaw(listId);
+  if (raw.isNotEmpty) {
+    return raw.map(WordItem.fromJson).toList();
   }
 
-  final api = ref.watch(listDetailApiProvider);
-  return api.fetchWords(listId);
+  return [];
 });
 
 final listLocalStatsProvider = FutureProvider.family<LocalStats, String>((ref, listId) async {
   final cache = ref.read(localCacheProvider);
-  final isSynced = await cache.isInitialSyncDone();
-  if (isSynced) {
-    final exerciseCount = await cache.countExercises(listId);
-    final quizCount = await cache.countQuizzes(listId);
-    return LocalStats(exerciseCount: exerciseCount, quizCount: quizCount);
-  }
-
-  final api = ref.watch(listDetailApiProvider);
-  return api.fetchLocalStats(listId);
+  final exerciseCount = await cache.countExercises(listId);
+  final quizCount = await cache.countQuizzes(listId);
+  return LocalStats(exerciseCount: exerciseCount, quizCount: quizCount);
 });
+
 
 
