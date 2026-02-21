@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/services/audio_player_service.dart';
 import '../../../../shared/widgets/empty_view.dart';
 import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/loading_view.dart';
@@ -8,6 +9,7 @@ import '../../../words/presentation/pages/word_detail_page.dart';
 import '../../domain/models/word_item.dart';
 import '../../domain/models/word_list.dart';
 import '../../providers/list_detail_providers.dart';
+
 
 
 class ListDetailPage extends ConsumerWidget {
@@ -60,6 +62,8 @@ class _WordItemTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final audioUrl = _DictionaryAudioExtractor.firstPhoneticAudio(word.dictionary);
+
     return Card(
       elevation: 1,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -80,9 +84,25 @@ class _WordItemTile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                word.value,
-                style: Theme.of(context).textTheme.titleMedium,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Text(
+                      word.value,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  if (audioUrl != null)
+                    IconButton(
+                      onPressed: () => AudioPlayerService.instance.playFromUrl(
+                        context,
+                        audioUrl,
+                      ),
+                      icon: const Icon(Icons.volume_up),
+                      tooltip: '发音',
+                    ),
+                ],
               ),
               if (word.meaning.isNotEmpty) ...[
                 const SizedBox(height: 6),
@@ -92,9 +112,6 @@ class _WordItemTile extends StatelessWidget {
               Row(
                 children: [
                   _MetricChip(label: '学习进度', value: '${word.learnedPoint}%'),
-                  const SizedBox(width: 8),
-                  if (word.definition.isNotEmpty)
-                    _MetricChip(label: '释义', value: '已生成'),
                 ],
               ),
             ],
@@ -104,6 +121,38 @@ class _WordItemTile extends StatelessWidget {
     );
   }
 }
+
+class _DictionaryAudioExtractor {
+  static String? firstPhoneticAudio(dynamic dictionary) {
+    if (dictionary is! List || dictionary.isEmpty) {
+      return null;
+    }
+
+    final first = dictionary.first;
+    if (first is Map && first['dictionary'] is List) {
+      return _firstAudioFromEntries(first['dictionary'] as List);
+    }
+
+    return _firstAudioFromEntries(dictionary);
+  }
+
+  static String? _firstAudioFromEntries(List entries) {
+    for (final entry in entries) {
+      if (entry is! Map) continue;
+      final phonetics = entry['phonetics'];
+      if (phonetics is! List) continue;
+      for (final phonetic in phonetics) {
+        if (phonetic is! Map) continue;
+        final audio = phonetic['audio']?.toString();
+        if (audio != null && audio.isNotEmpty) {
+          return audio;
+        }
+      }
+    }
+    return null;
+  }
+}
+
 
 
 class _MetricChip extends StatelessWidget {
