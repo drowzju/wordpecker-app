@@ -1,4 +1,9 @@
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+
+
 
 class LocalCacheService {
   LocalCacheService._();
@@ -10,7 +15,9 @@ class LocalCacheService {
   static const String _exercisesBoxName = 'exercises';
   static const String _quizzesBoxName = 'quizzes';
   static const String _pendingPointsBoxName = 'pending_points';
+  static const String _wordDetailsBoxName = 'word_details';
   static const String _metaBoxName = 'meta';
+
 
 
   static const String _listsKey = 'all';
@@ -28,8 +35,10 @@ class LocalCacheService {
       Hive.openBox<dynamic>(_exercisesBoxName),
       Hive.openBox<dynamic>(_quizzesBoxName),
       Hive.openBox<dynamic>(_pendingPointsBoxName),
+      Hive.openBox<dynamic>(_wordDetailsBoxName),
       Hive.openBox<dynamic>(_metaBoxName),
     ]);
+
 
     _initialized = true;
   }
@@ -39,13 +48,22 @@ class LocalCacheService {
   Box<dynamic> get _exercisesBox => Hive.box<dynamic>(_exercisesBoxName);
   Box<dynamic> get _quizzesBox => Hive.box<dynamic>(_quizzesBoxName);
   Box<dynamic> get _pendingPointsBox => Hive.box<dynamic>(_pendingPointsBoxName);
+  Box<dynamic> get _wordDetailsBox => Hive.box<dynamic>(_wordDetailsBoxName);
   Box<dynamic> get _metaBox => Hive.box<dynamic>(_metaBoxName);
+
 
   Future<void> _ensurePendingPointsBoxOpen() async {
     if (!Hive.isBoxOpen(_pendingPointsBoxName)) {
       await Hive.openBox<dynamic>(_pendingPointsBoxName);
     }
   }
+
+  Future<void> _ensureWordDetailsBoxOpen() async {
+    if (!Hive.isBoxOpen(_wordDetailsBoxName)) {
+      await Hive.openBox<dynamic>(_wordDetailsBoxName);
+    }
+  }
+
 
 
 
@@ -96,6 +114,53 @@ class LocalCacheService {
     }
     return [];
   }
+
+  Map<String, dynamic> _sanitizeMap(Map<String, dynamic> map) {
+    try {
+      return jsonDecode(jsonEncode(map)) as Map<String, dynamic>;
+    } catch (error) {
+      debugPrint('Cache sanitize failed: $error');
+      return map;
+    }
+  }
+
+  Future<void> saveWordDetailRaw(String wordId, Map<String, dynamic> detail) async {
+    if (wordId.isEmpty) return;
+    await _ensureWordDetailsBoxOpen();
+    final sanitized = _sanitizeMap(detail);
+    final examples = sanitized['examples'];
+    final count = examples is List ? examples.length : 0;
+    debugPrint('Cache save word=$wordId examples=$count');
+    await _wordDetailsBox.put(wordId, sanitized);
+    await _wordDetailsBox.flush();
+    final stored = _wordDetailsBox.get(wordId);
+    if (stored is Map) {
+      final storedExamples = stored['examples'];
+      final storedCount = storedExamples is List ? storedExamples.length : 0;
+      debugPrint('Cache readback word=$wordId examples=$storedCount');
+    } else {
+      debugPrint('Cache readback word=$wordId missing');
+    }
+  }
+
+
+
+  Future<Map<String, dynamic>?> loadWordDetailRaw(String wordId) async {
+    if (wordId.isEmpty) return null;
+    await _ensureWordDetailsBoxOpen();
+    final raw = _wordDetailsBox.get(wordId);
+    if (raw is Map) {
+      final detail = Map<String, dynamic>.from(raw as Map);
+      final examples = detail['examples'];
+      final count = examples is List ? examples.length : 0;
+      debugPrint('Cache load word=$wordId examples=$count');
+      return detail;
+    }
+    debugPrint('Cache load miss word=$wordId');
+    return null;
+  }
+
+
 
   Future<int> countExercises(String listId) async {
     final exercises = await loadExercisesRaw(listId);

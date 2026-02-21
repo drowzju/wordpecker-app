@@ -47,6 +47,56 @@ class WordExample {
   }
 }
 
+class SimilarWordItem {
+  final String word;
+  final String meaning;
+  final String example;
+  final String? usageNote;
+
+  const SimilarWordItem({
+    required this.word,
+    required this.meaning,
+    required this.example,
+    required this.usageNote,
+  });
+
+  factory SimilarWordItem.fromJson(Map<String, dynamic> json) {
+    return SimilarWordItem(
+      word: (json['word'] as String? ?? '').trim(),
+      meaning: (json['meaning'] as String? ?? '').trim(),
+      example: (json['example'] as String? ?? '').trim(),
+      usageNote: (json['usage_note'] as String?)?.trim(),
+    );
+  }
+}
+
+class SimilarWordsGroup {
+  final List<SimilarWordItem> synonyms;
+  final List<SimilarWordItem> interchangeableWords;
+
+  const SimilarWordsGroup({
+    required this.synonyms,
+    required this.interchangeableWords,
+  });
+
+  factory SimilarWordsGroup.fromJson(Map<String, dynamic> json) {
+    final synonymsRaw = json['synonyms'];
+    final interchangeableRaw = json['interchangeable_words'];
+    return SimilarWordsGroup(
+      synonyms: synonymsRaw is List
+          ? synonymsRaw
+              .map((item) => SimilarWordItem.fromJson(Map<String, dynamic>.from(item as Map)))
+              .toList()
+          : const [],
+      interchangeableWords: interchangeableRaw is List
+          ? interchangeableRaw
+              .map((item) => SimilarWordItem.fromJson(Map<String, dynamic>.from(item as Map)))
+              .toList()
+          : const [],
+    );
+  }
+}
+
 class WordDetail {
   final String id;
   final String value;
@@ -54,25 +104,33 @@ class WordDetail {
   final dynamic dictionary;
   final List<WordContextInfo> contexts;
   final List<WordExample> examples;
+  final SimilarWordsGroup? similarWords;
+  final String? similarContext;
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  const WordDetail({
-    required this.id,
-    required this.value,
-    required this.definition,
-    required this.dictionary,
-    required this.contexts,
-    required this.examples,
-    required this.createdAt,
-    required this.updatedAt,
-  });
+  WordDetail({
+    this.id = '',
+    this.value = '',
+    this.definition = '',
+    this.dictionary = const [],
+    this.contexts = const [],
+    this.examples = const [],
+    this.similarWords,
+    this.similarContext,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  })  : createdAt = createdAt ?? DateTime.now(),
+        updatedAt = updatedAt ?? DateTime.now();
+
+
 
   factory WordDetail.fromJson(Map<String, dynamic> json) {
     final createdRaw = json['created_at'] as String?;
     final updatedRaw = json['updated_at'] as String?;
     final contextsRaw = json['contexts'];
     final examplesRaw = json['examples'];
+    final similarRaw = json['similar_words'];
 
     return WordDetail(
       id: (json['id'] as String? ?? json['_id'] as String? ?? '').trim(),
@@ -93,6 +151,10 @@ class WordDetail {
                   ))
               .toList()
           : const [],
+      similarWords: similarRaw is Map
+          ? SimilarWordsGroup.fromJson(Map<String, dynamic>.from(similarRaw as Map))
+          : null,
+      similarContext: (json['context'] as String?)?.trim(),
       createdAt: createdRaw != null
           ? DateTime.tryParse(createdRaw) ?? DateTime.now()
           : DateTime.now(),
@@ -102,3 +164,4 @@ class WordDetail {
     );
   }
 }
+

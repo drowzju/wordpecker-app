@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/services/audio_player_service.dart';
@@ -34,7 +36,8 @@ class WordDetailPage extends ConsumerWidget {
           details: error.toString(),
           onRetry: () => ref.invalidate(wordDetailProvider(wordId)),
         ),
-        data: (detail) => _WordDetailBody(detail: detail),
+        data: (detail) => _WordDetailBody(detail: detail, wordId: wordId),
+
       ),
     );
   }
@@ -42,12 +45,16 @@ class WordDetailPage extends ConsumerWidget {
 
 class _WordDetailBody extends StatelessWidget {
   final WordDetail detail;
+  final String wordId;
 
-  const _WordDetailBody({required this.detail});
+  const _WordDetailBody({required this.detail, required this.wordId});
+
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('WordDetailPage word=$wordId examples=${detail.examples.length}');
     final dictionaryData = _DictionaryParser.parse(detail.dictionary);
+
     final phoneticText = _DictionaryParser.firstPhoneticText(dictionaryData.entries);
     final phoneticAudio = _DictionaryParser.firstPhoneticAudio(dictionaryData.entries);
 
@@ -150,6 +157,47 @@ class _WordDetailBody extends StatelessWidget {
           ),
         ] else
           const SizedBox(height: 12),
+        if ((detail.similarWords?.synonyms.isNotEmpty ?? false) ||
+            (detail.similarWords?.interchangeableWords.isNotEmpty ?? false)) ...[
+          const SizedBox(height: 16),
+          _SectionCard(
+            title: '相似词',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (detail.similarContext != null && detail.similarContext!.isNotEmpty) ...[
+                  Text(
+                    detail.similarContext!,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                if (detail.similarWords!.synonyms.isNotEmpty) ...[
+                  Text(
+                    '同义词',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 6),
+                  ...detail.similarWords!.synonyms
+                      .map((item) => _SimilarWordTile(item: item))
+                      .toList(),
+                  const SizedBox(height: 12),
+                ],
+                if (detail.similarWords!.interchangeableWords.isNotEmpty) ...[
+                  Text(
+                    '可替换词',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 6),
+                  ...detail.similarWords!.interchangeableWords
+                      .map((item) => _SimilarWordTile(item: item))
+                      .toList(),
+                ],
+              ],
+            ),
+          ),
+        ],
+
       ],
     );
   }
@@ -385,7 +433,48 @@ class _ExampleTile extends StatelessWidget {
   }
 }
 
+class _SimilarWordTile extends StatelessWidget {
+  final SimilarWordItem item;
+
+  const _SimilarWordTile({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            item.word,
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          if (item.meaning.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(item.meaning),
+          ],
+          if (item.example.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              '例句：${item.example}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+          if (item.usageNote != null && item.usageNote!.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(
+              item.usageNote!,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class _DictionaryData {
+
   final List<Map<String, dynamic>> entries;
   final List<String> stems;
 

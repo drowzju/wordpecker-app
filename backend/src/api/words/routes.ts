@@ -26,10 +26,12 @@ const transformWord = (word: IWord, listId: string) => {
     learnedPoint: context?.learnedPoint || 0,
     definition: word.definition,
     dictionary: word.dictionary,
+    examples: word.examples || [],
     created_at: word.created_at.toISOString(),
     updated_at: word.updated_at.toISOString()
   };
 };
+
 
 router.post('/:listId/words', validate(addWordSchema), async (req, res) => {
   try {

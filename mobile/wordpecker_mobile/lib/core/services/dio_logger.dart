@@ -5,19 +5,13 @@ Interceptor createDioLogger() {
   return InterceptorsWrapper(
     onRequest: (options, handler) {
       debugPrint('[DIO][Request] ${options.method} ${options.uri}');
-      debugPrint('[DIO][Headers] ${options.headers}');
-      if (options.data != null) {
-        debugPrint('[DIO][Body] ${options.data}');
-      }
       handler.next(options);
     },
     onResponse: (response, handler) {
       debugPrint('[DIO][Response] ${response.statusCode} ${response.requestOptions.uri}');
-      if (response.data != null) {
-        debugPrint('[DIO][Response Body] ${response.data}');
-      }
       handler.next(response);
     },
+
     onError: (error, handler) {
       final uri = error.requestOptions.uri;
       debugPrint('[DIO][Error] ${error.type} ${error.message}');

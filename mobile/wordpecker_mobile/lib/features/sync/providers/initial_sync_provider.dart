@@ -1,9 +1,13 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 
 import '../../../core/providers/local_cache_provider.dart';
 import '../../lists/providers/list_providers.dart';
 import '../../lists/providers/list_detail_providers.dart';
 import '../../quiz/providers/quiz_providers.dart';
+import '../../words/providers/word_detail_providers.dart';
+
 
 
 class SyncProgress {
@@ -154,6 +158,7 @@ class InitialSyncNotifier extends AsyncNotifier<SyncProgress> {
       int current = 0;
 
       final detailApi = ref.read(listDetailApiProvider);
+      final wordDetailApi = ref.read(wordDetailApiProvider);
       for (final list in listsRaw) {
         final listId = list['id']?.toString() ?? '';
         if (listId.isEmpty) continue;
@@ -170,9 +175,31 @@ class InitialSyncNotifier extends AsyncNotifier<SyncProgress> {
         final exercises = await detailApi.fetchExercisesRaw(listId);
         final quizzes = await detailApi.fetchQuizzesRaw(listId);
 
+        final wordsWithExamples = words.where((word) {
+          final examples = word['examples'];
+          return examples is List && examples.isNotEmpty;
+        }).length;
+        debugPrint('Sync list=$listId words=${words.length} withExamples=$wordsWithExamples');
+
         await cache.saveWordsRaw(listId, words);
         await cache.saveExercisesRaw(listId, exercises);
         await cache.saveQuizzesRaw(listId, quizzes);
+
+        for (final word in words) {
+          final wordId = word['id']?.toString() ?? word['_id']?.toString() ?? '';
+          if (wordId.isEmpty) continue;
+          try {
+            final detailRaw = await wordDetailApi.fetchWordDetailRaw(wordId);
+            final detailMap = Map<String, dynamic>.from(detailRaw);
+            final examples = detailMap['examples'];
+            final exampleCount = examples is List ? examples.length : 0;
+            debugPrint('WordDetail sync word=$wordId examples=$exampleCount');
+            await cache.saveWordDetailRaw(wordId, detailMap);
+          } catch (error) {
+            debugPrint('WordDetail sync failed word=$wordId error=$error');
+          }
+        }
+
 
         current += 1;
         state = AsyncData(
@@ -183,6 +210,7 @@ class InitialSyncNotifier extends AsyncNotifier<SyncProgress> {
           ),
         );
       }
+
 
       await cache.setInitialSyncDone(true);
       final now = DateTime.now();
