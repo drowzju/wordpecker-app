@@ -8,15 +8,16 @@ class ListApi {
   ListApi(this.dio);
 
   Future<List<WordList>> fetchLists() async {
-    final response = await dio.get('/lists');
+    final response = await dio.get('/api/lists');
+
     final data = response.data;
     if (data is! List) {
       throw StateError('列表数据格式错误');
     }
 
     return data
-        .whereType<Map<String, dynamic>>()
-        .map(WordList.fromJson)
+        .map((item) => WordList.fromJson(Map<String, dynamic>.from(item as Map)))
         .toList();
+
   }
 }

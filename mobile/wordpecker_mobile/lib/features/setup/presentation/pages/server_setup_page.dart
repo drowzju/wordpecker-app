@@ -38,8 +38,12 @@ class _ServerSetupPageState extends ConsumerState<ServerSetupPage> {
       input = 'http://$input';
     }
     input = input.replaceAll(RegExp(r'/+$'), '');
+    if (input.endsWith('/api')) {
+      input = input.substring(0, input.length - 4);
+    }
     return input;
   }
+
 
   Future<void> _save() async {
     final rawUrl = _baseUrlController.text;
@@ -87,7 +91,8 @@ class _ServerSetupPageState extends ConsumerState<ServerSetupPage> {
             controller: _baseUrlController,
             decoration: const InputDecoration(
               labelText: '服务器地址',
-              hintText: '例如 http://192.168.1.8:3000',
+              hintText: '例如 http://192.168.1.8:3000（不含 /api）',
+
               border: OutlineInputBorder(),
             ),
           ),

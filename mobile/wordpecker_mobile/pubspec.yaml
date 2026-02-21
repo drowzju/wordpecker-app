@@ -42,6 +42,10 @@ dependencies:
   freezed_annotation: ^2.4.1
   json_annotation: ^4.8.1
   intl: ^0.18.1
+  url_launcher: ^6.2.6
+  audioplayers: ^5.2.1
+
+
 
 dev_dependencies:
   flutter_test:

@@ -3,11 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/server_config_provider.dart';
 import '../../../core/services/dio_logger.dart';
-import '../data/list_api.dart';
-import '../domain/models/word_list.dart';
+import '../data/word_detail_api.dart';
+import '../domain/models/word_detail.dart';
 
-
-final listApiProvider = Provider<ListApi>((ref) {
+final wordDetailApiProvider = Provider<WordDetailApi>((ref) {
   final config = ref.watch(serverConfigProvider).value;
   if (config == null) {
     throw StateError('服务器未配置');
@@ -23,12 +22,10 @@ final listApiProvider = Provider<ListApi>((ref) {
   );
   dio.interceptors.add(createDioLogger());
 
-  return ListApi(dio);
-
-
+  return WordDetailApi(dio);
 });
 
-final listsProvider = FutureProvider<List<WordList>>((ref) async {
-  final api = ref.watch(listApiProvider);
-  return api.fetchLists();
+final wordDetailProvider = FutureProvider.family<WordDetail, String>((ref, wordId) async {
+  final api = ref.watch(wordDetailApiProvider);
+  return api.fetchWordDetail(wordId);
 });
